@@ -14,10 +14,14 @@ concurrency:
 
 jobs:
   dmg:
-    runs-on: macos-14
+    runs-on: macos-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+
+      # The DMG is Apple Silicon only; fail early instead of shipping an x86 bundle.
+      - name: Check the runner architecture
+        run: test "$(uname -m)" = "arm64"
 
       - uses: actions/setup-python@v5
         with:
