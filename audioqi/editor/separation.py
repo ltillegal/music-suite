@@ -21,6 +21,7 @@ import numpy as np
 import soundfile as sf
 from scipy.signal import resample_poly
 
+from audioqi import models_root
 from audioqi.editor import engines, projects
 from audioqi.editor.processing import fit_length, process_chunked, require_min_length
 from audioqi.editor.projects import EditorError
@@ -192,7 +193,7 @@ def _run_separator(
     """Run one audio-separator model; returns its stems by lower-case name and their rate."""
     from audio_separator.separator import Separator
 
-    models_dir = projects.SETTINGS.data_dir.resolve() / "models" / "audio-separator"
+    models_dir = models_root.separator_dir()
     models_dir.mkdir(parents=True, exist_ok=True)
     # The library rescales loud mixes; feed it a safely quiet copy and undo the gain after.
     peak = float(np.max(np.abs(audio)))

@@ -12,6 +12,12 @@ STARTUP_TIMEOUT_SECONDS="${MUSIC_SUITE_STARTUP_TIMEOUT_SECONDS:-300}"
 cd "$ROOT"
 mkdir -p "$LOG_DIR" "$STATE_DIR"
 
+# The packaged app keeps its state outside the read-only .app bundle; the saved
+# external-models root belongs there too, so it survives app and bundle updates.
+if [[ -n "${MUSIC_SUITE_STATE_DIR:-}" && -z "${MUSIC_SUITE_MODELS_CONFIG:-}" ]]; then
+  export MUSIC_SUITE_MODELS_CONFIG="$STATE_DIR/models-root.json"
+fi
+
 # Homebrew binaries (pnpm/node) are not on PATH in Finder/SSH shells on macOS.
 if ! command -v brew >/dev/null 2>&1; then
   [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -111,6 +117,11 @@ API_LOG="$LOG_DIR/api.log"
 WEB_LOG="$LOG_DIR/web.log"
 : > "$API_LOG"
 : > "$WEB_LOG"
+
+# Cache downloads follow the chosen models root, if the user set one.
+if [[ -x .venv/bin/python ]]; then
+  eval "$(".venv/bin/python" -m audioqi.models_root shell-env 2>/dev/null || true)"
+fi
 
 .venv/bin/python -m uvicorn apps.api.main:app --host 127.0.0.1 --port "$API_PORT" >"$API_LOG" 2>&1 &
 API_PID=$!

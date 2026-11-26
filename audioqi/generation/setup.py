@@ -300,6 +300,11 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _models_folder(target: Path) -> Path:
+    """Engine code stays put; downloaded weights may live on an external disk."""
+    return settings.models_dir() if target == settings.engine_dir() else target / "models"
+
+
 def _download_models(
     target: Path,
     report: Report,
@@ -309,7 +314,7 @@ def _download_models(
     models = MODELS if models is None else models
     total = sum(size for size, _ in models.values())
     low, high = span
-    folder = target / "models"
+    folder = _models_folder(target)
     folder.mkdir(parents=True, exist_ok=True)
     pending = {
         name: spec
@@ -379,7 +384,7 @@ def pull_writer_model(report: Report) -> bool:
 
 
 def _present(models: dict[str, tuple[int, str]]) -> bool:
-    folder = settings.engine_dir() / "models"
+    folder = settings.models_dir()
     return all(
         (folder / name).is_file() and (folder / name).stat().st_size == size
         for name, (size, _) in models.items()

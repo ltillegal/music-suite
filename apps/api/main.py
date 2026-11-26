@@ -58,6 +58,7 @@ from audioqi.mastering import (
     write_mastering_state,
 )
 from audioqi.models import AnalysisRun
+from audioqi.models_root import apply_environment
 from audioqi.report.generator import generate_report_artifacts
 from audioqi.schemas import RunDetail, RunSummary, UploadResponse
 from audioqi.storage import (
@@ -70,6 +71,7 @@ from audioqi.storage import (
 )
 from audioqi.updater import UpdateError, apply_update, get_update_status
 
+apply_environment()  # Download caches follow an external models root, if one is configured.
 SETTINGS = get_settings()
 ALLOWED_AUDIO_EXTENSIONS = {".aac", ".aif", ".aiff", ".flac", ".m4a", ".mp3", ".ogg", ".wav"}
 UPLOAD_CHUNK_BYTES = 1024 * 1024

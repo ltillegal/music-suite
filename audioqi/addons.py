@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from audioqi import models_root
 from audioqi.editor import projects
 from audioqi.editor.projects import EditorError
 
@@ -156,7 +157,7 @@ _STATE = _State()
 
 def models_dir() -> Path:
     """Where the separators keep their weights (shared with ``editor.separation``)."""
-    return projects.SETTINGS.data_dir.resolve() / "models" / "audio-separator"
+    return models_root.separator_dir()
 
 
 def has_module(name: str) -> bool:

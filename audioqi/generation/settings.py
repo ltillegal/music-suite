@@ -8,6 +8,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from audioqi import models_root
 from audioqi.editor import projects
 from audioqi.editor.projects import ParamError
 
@@ -71,6 +72,13 @@ def default_engine_dir() -> Path:
 def engine_dir() -> Path:
     raw = os.getenv("MUSIC_SUITE_ACESTEP_DIR") or str(load().get("engine_dir") or "")
     return Path(raw).expanduser().resolve() if raw.strip() else default_engine_dir()
+
+
+def models_dir() -> Path:
+    """The engine's GGUF folder, on the external root when one has been chosen."""
+    if models_root.configured_root() is not None:
+        return models_root.engine_models_dir()
+    return engine_dir() / "models"
 
 
 def _clean(key: str, value: Any) -> Any:

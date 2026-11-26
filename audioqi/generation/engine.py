@@ -57,7 +57,7 @@ def classify_model(filename: str) -> str:
 def list_models(engine_dir: Path | None = None) -> dict[str, list[str]]:
     """GGUF files in the engine's models folder, grouped the way the engine groups them."""
     found: dict[str, list[str]] = {kind: [] for kind in REQUIRED_MODEL_KINDS}
-    models = (engine_dir or settings.engine_dir()) / "models"
+    models = settings.models_dir() if engine_dir is None else engine_dir / "models"
     if models.is_dir():
         for path in sorted(models.glob("*.gguf")):
             if path.is_file():
@@ -148,7 +148,7 @@ class EngineSupervisor:
             "--port",
             str(self._port),
             "--models",
-            str(base / "models"),
+            str(settings.models_dir()),
         ]
         if (base / "adapters").is_dir():
             command += ["--adapters", str(base / "adapters")]
