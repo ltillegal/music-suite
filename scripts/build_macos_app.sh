@@ -138,6 +138,19 @@ python3 -c 'import hashlib, pathlib; files=(pathlib.Path("pyproject.toml"), path
 
 codesign --force --sign - "$APP" >/dev/null 2>&1 || echo "Note: ad-hoc signing was skipped."
 
+# Fail the build rather than ship a bundle that cannot start: this is exactly how
+# v1.2 went out with a .venv that pointed at the build machine's interpreter.
+if [[ "$BUNDLED_PYTHON" -eq 1 ]]; then
+  if [[ ! -x "$SUITE/.python/bin/python3.12" ]]; then
+    echo "The bundled Python is missing from the app; refusing to build." >&2
+    exit 1
+  fi
+  if [[ -e "$SUITE/.venv" ]]; then
+    echo "The app still carries a .venv next to .python; remove one of them." >&2
+    exit 1
+  fi
+fi
+
 echo "Creating DMG..."
 hdiutil create -volname "Music Suite" -srcfolder "$APP" -ov -format UDZO "$DMG" >/dev/null
 
