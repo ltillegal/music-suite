@@ -90,7 +90,7 @@ echo "Bundling the suite (this includes .venv and node_modules and can take a wh
 SUITE="$APP/Contents/Resources/suite"
 mkdir -p "$SUITE"
 rsync -a \
-  --exclude '.git' --exclude 'dist' --exclude 'logs' \
+  --exclude '/.git' --exclude '/dist' --exclude '/logs' \
   --exclude '__pycache__' --exclude '*.pyc' --exclude '.pytest_cache' \
   --exclude '.music-suite-processes.json' --exclude '.music-suite-install-state' \
   "$ROOT/" "$SUITE/"
