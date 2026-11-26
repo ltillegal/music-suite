@@ -46,6 +46,10 @@ jobs:
             echo "state=conflict" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Structural audit of the merged tree
+        if: steps.merge.outputs.state == 'merged'
+        run: python3 scripts/qa_audit.py --base origin/main
+
       - name: Run the tests on the merged tree
         if: steps.merge.outputs.state == 'merged'
         run: |

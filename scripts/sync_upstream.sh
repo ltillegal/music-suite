@@ -54,6 +54,12 @@ MSG
   exit 2
 fi
 
+echo "Running the structural audit..."
+if ! python3 scripts/qa_audit.py --base main; then
+  echo "The audit found blocking problems; the branch is left for inspection." >&2
+  exit 4
+fi
+
 if command -v python3 >/dev/null 2>&1 && python3 -c "import pytest" 2>/dev/null; then
   echo "Running the test suite..."
   python3 -m pytest tests -q || {
