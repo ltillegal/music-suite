@@ -129,7 +129,9 @@ if command -v uv >/dev/null 2>&1; then
       if [[ -L "$PY_BIN" ]]; then
         echo "The bundled Python is a symlink to $(readlink "$PY_BIN"); refusing it." >&2
       elif [[ -x "$PY_BIN" ]] && [[ "$("$PY_BIN" -c 'import sys; print(sys.prefix)')" == "$SUITE"* ]]; then
-        if uv pip install --python "$PY_BIN" --quiet -e "$SUITE"; then
+        # python-build-standalone is marked externally managed (PEP 668); we are
+        # deliberately filling the interpreter that ships with the app.
+        if uv pip install --python "$PY_BIN" --quiet --break-system-packages -e "$SUITE"; then
           BUNDLED_PYTHON=1
         fi
       fi
@@ -137,8 +139,15 @@ if command -v uv >/dev/null 2>&1; then
   fi
 fi
 if [[ "$BUNDLED_PYTHON" -eq 0 ]]; then
-  echo "Note: no standalone Python was bundled; the app will rely on a local .venv." >&2
-  rsync -a "$ROOT/.venv/" "$SUITE/.venv/"
+  if [[ "${MUSIC_SUITE_ALLOW_VENV_FALLBACK:-0}" == "1" ]]; then
+    echo "Note: no standalone Python was bundled; copying the local .venv instead." >&2
+    rsync -a "$ROOT/.venv/" "$SUITE/.venv/"
+  else
+    echo "No standalone Python could be bundled. The .venv cannot be relocated," >&2
+    echo "so this app would not start on another Mac. Refusing to build." >&2
+    echo "Set MUSIC_SUITE_ALLOW_VENV_FALLBACK=1 for a local, non-distributable build." >&2
+    exit 1
+  fi
 fi
 
 # The bundle has no .git directory, so match start.command's fallback revision.
