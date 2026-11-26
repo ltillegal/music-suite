@@ -31,6 +31,11 @@ DEFAULTS: dict[str, Any] = {
         # Opt-in: these need software or hardware most machines do not have.
         "acestep_server": False,
         "yue2": False,
+        "stable_audio3": False,
+        "heartmula": False,
+        "diffrhythm": False,
+        "minimax3": False,
+        "magenta_rt2": False,
         "elevenlabs": False,
         "fal": False,
         "lyria": False,
@@ -74,13 +79,6 @@ def engine_dir() -> Path:
     return Path(raw).expanduser().resolve() if raw.strip() else default_engine_dir()
 
 
-def models_dir() -> Path:
-    """The engine's GGUF folder, on the external root when one has been chosen."""
-    if models_root.configured_root() is not None:
-        return models_root.engine_models_dir()
-    return engine_dir() / "models"
-
-
 def _clean(key: str, value: Any) -> Any:
     if key in _RANGES:
         low, high = _RANGES[key]
@@ -115,6 +113,20 @@ def _clean(key: str, value: Any) -> Any:
             raise ParamError("Unknown provider.")
         return value
     raise ParamError("Unknown setting.")
+
+
+def models_dir() -> Path:
+    """The engine's GGUF folder: an external models root wins over a managed runtime."""
+    if models_root.configured_root() is not None:
+        return models_root.engine_models_dir()
+    base = engine_dir()
+    if base == default_engine_dir():
+        from audioqi.generation import local_runtimes
+
+        managed = local_runtimes.manifest("acestep_local").get("checkpoint_root")
+        if managed and Path(managed).is_dir():
+            return Path(managed)
+    return base / "models"
 
 
 def update(patch: Any) -> dict[str, Any]:
