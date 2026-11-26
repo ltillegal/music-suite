@@ -161,6 +161,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
                 statusField.stringValue = "Starting Music Suite… (\(polls * 2)s)"
                 logLine("still waiting for state file: \(stateURL.path)")
             }
+            polling = false
             schedulePoll()
             return
         }
