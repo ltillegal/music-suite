@@ -9,7 +9,20 @@ import WebKit
 
 private func logLine(_ message: String) {
     let line = "[\(ISO8601DateFormatter().string(from: Date()))] \(message)\n"
-    FileHandle.standardError.write(Data(line.utf8))
+    let data = Data(line.utf8)
+    FileHandle.standardError.write(data)
+
+    let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("Music Suite", isDirectory: true)
+    try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+    let path = support.appendingPathComponent("launcher-native.log").path
+    if let handle = FileHandle(forWritingAtPath: path) {
+        handle.seekToEndOfFile()
+        handle.write(data)
+        handle.closeFile()
+    } else {
+        try? line.write(toFile: path, atomically: true, encoding: .utf8)
+    }
 }
 
 final class SuiteLauncher: NSObject, NSApplicationDelegate {
@@ -144,6 +157,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
         guard let port = webPort else {
             if polls % 10 == 0 {
                 statusField.stringValue = "Starting Music Suite… (\(polls * 2)s)"
+                logLine("still waiting for state file: \(stateURL.path)")
             }
             schedulePoll()
             return
@@ -151,8 +165,9 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
 
         let candidate = URL(string: "http://127.0.0.1:\(port)/")!
         let request = URLRequest(url: candidate, timeoutInterval: 2)
-        URLSession.shared.dataTask(with: request) { [weak self] _, response, _ in
+        URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
             let ok = (response as? HTTPURLResponse)?.statusCode == 200
+            logLine("probe \(candidate.absoluteString): status=\((response as? HTTPURLResponse)?.statusCode ?? -1) error=\(error?.localizedDescription ?? "none")")
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.polling = false
