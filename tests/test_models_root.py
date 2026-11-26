@@ -139,3 +139,66 @@ def test_restore_refuses_an_environment_override(
     with pytest.raises(ValueError, match="Unset"):
         models_root.restore()
     assert models_root.config_path().is_file()
+
+
+def test_use_adopts_an_existing_models_folder(isolated: Path, tmp_path: Path) -> None:
+    split, weights = _seed(isolated)
+    external = tmp_path / "external"
+    (external / "audio-separator").mkdir(parents=True)
+    (external / "audio-separator" / "htdemucs_ft.yaml").write_bytes(b"s" * 4096)
+
+    result = models_root.use(external)
+    assert result["mode"] == "used" and result["folders"] == ["audio-separator"]
+    assert models_root.separator_dir() == external / "audio-separator"
+    assert models_root.status()["source"] == "config"
+
+    models_root.restore()
+    assert split.is_dir()  # back to the default tree, nothing was copied out
+    assert models_root.models_root() == isolated / "models"
+    assert weights.is_dir()
+
+
+def test_use_refuses_a_folder_without_models(isolated: Path, tmp_path: Path) -> None:
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    with pytest.raises(ValueError, match="does not look like a models root"):
+        models_root.use(empty)
+    assert not models_root.config_path().exists()
+
+
+def test_relative_environment_override_is_reported_as_default(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(models_root.ENV_ROOT, "relative/models")
+    assert models_root.configured_root() is None
+    assert models_root.root_source() == "default"
+    assert models_root.models_root() == isolated / "models"
+
+
+def test_move_saves_the_new_root_before_deleting_the_old_folders(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _seed(isolated)
+    external = tmp_path / "external"
+    seen: list[bool] = []
+    real_rmtree = models_root.shutil.rmtree
+
+    def spy(path: str | Path, *args: object, **kwargs: object) -> None:
+        seen.append(models_root.config_path().is_file())
+        real_rmtree(path, *args, **kwargs)
+
+    monkeypatch.setattr(models_root.shutil, "rmtree", spy)
+    models_root.migrate(external, move=True)
+    assert seen and all(seen), "the saved root must exist before the old copy is deleted"
+
+
+def test_restore_needs_room_for_the_external_copy(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _seed(isolated)
+    external = tmp_path / "external"
+    models_root.migrate(external, move=True)
+    monkeypatch.setattr(models_root, "_disk_free", lambda path: 0)
+    with pytest.raises(ValueError, match="Not enough free space"):
+        models_root.restore()
+    assert (external / "audio-separator").is_dir()

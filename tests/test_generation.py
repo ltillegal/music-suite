@@ -1491,6 +1491,9 @@ def test_windows_build_targets_windows_10(tmp_path: Path, monkeypatch) -> None:
     """MinGW defaults to an old Windows version that hides CreateFile2 (cpp-httplib)."""
     commands: list[list[str]] = []
     monkeypatch.setattr(setup.sys, "platform", "win32")
+    # Faking sys.platform also makes shutil.which take its Windows branch, which
+    # needs the Windows-only _winapi module. Stand in for it so this runs anywhere.
+    monkeypatch.setattr(setup.shutil, "which", lambda name, *_a, **_k: f"/fake/{name}")
     monkeypatch.setattr(setup, "_run", lambda command, cwd, *_a: commands.append(command))
     monkeypatch.setattr(engine, "binary_path", lambda _t: None if not commands else tmp_path)
     setup._build(tmp_path, lambda *_a: None, force=True)

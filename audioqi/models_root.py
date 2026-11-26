@@ -10,6 +10,7 @@ Usage from a terminal::
     python -m audioqi.models_root status
     python -m audioqi.models_root move /Volumes/Drive/MusicSuiteModels
     python -m audioqi.models_root copy /Volumes/Drive/MusicSuiteModels
+    python -m audioqi.models_root use /Volumes/Drive/MusicSuiteModels
     python -m audioqi.models_root restore
     python -m audioqi.models_root shell-env
 """
@@ -64,7 +65,8 @@ def configured_root() -> Path | None:
 
 
 def root_source() -> str:
-    if os.environ.get(ENV_ROOT, "").strip():
+    raw = os.environ.get(ENV_ROOT, "").strip()
+    if raw and Path(raw).expanduser().is_absolute():
         return "environment"
     return "config" if (projects.read_json_safe(config_path()) or {}).get("root") else "default"
 
@@ -121,6 +123,16 @@ def _local_pairs() -> list[tuple[str, Path]]:
     return [
         (SPLIT_DIR, separator_dir()),
         (ENGINE_DIR, generation_settings.models_dir()),
+    ]
+
+
+def _default_pairs() -> list[tuple[str, Path]]:
+    """Where the folders live when no external root is chosen (used by ``restore``)."""
+    from audioqi.generation import settings as generation_settings
+
+    return [
+        (SPLIT_DIR, default_root() / SPLIT_DIR),
+        (ENGINE_DIR, generation_settings.engine_dir() / "models"),
     ]
 
 
@@ -241,8 +253,6 @@ def migrate(destination: Path, *, move: bool, hf_cache: bool = False) -> dict[st
             continue
         shutil.copytree(source, target, dirs_exist_ok=True)
         copied[name] = size
-        if move:
-            shutil.rmtree(source)
     stored = projects.read_json_safe(config_path()) or {}
     previous = stored.get("original")
     original = (
@@ -257,13 +267,37 @@ def migrate(destination: Path, *, move: bool, hf_cache: bool = False) -> dict[st
         else {name: str(source) for name, source in pairs}
     )
     if move:
+        # Record the destination first: a crash while deleting the old folders must
+        # leave the app pointing at the copy, not at a half-empty original.
         _write_config(destination, original)
+        for name, source in pairs:
+            if source.is_dir() and name in copied:
+                shutil.rmtree(source)
     return {
         "root": str(destination),
         "mode": "moved" if move else "copied",
         "bytes": sum(copied.values()),
         "folders": sorted(copied),
     }
+
+
+def use(destination: Path) -> dict[str, Any]:
+    """Point the suite at a folder that already holds the models, without copying."""
+    destination = destination.expanduser().resolve()
+    if not destination.is_dir():
+        raise ValueError(f"{destination} is not a folder.")
+    known = [
+        name
+        for name in (SPLIT_DIR, ENGINE_DIR, HF_DIR, COMFY_DIR)
+        if _pair_target(destination, name).exists()
+    ]
+    if not known:
+        raise ValueError(
+            f"{destination} does not look like a models root: no {SPLIT_DIR}, "
+            f"{ENGINE_DIR}, {HF_DIR} or {COMFY_DIR} inside."
+        )
+    _write_config(destination, {})
+    return {"root": str(destination), "mode": "used", "folders": sorted(known)}
 
 
 def restore(*, move: bool = True) -> dict[str, Any]:
@@ -283,13 +317,14 @@ def restore(*, move: bool = True) -> dict[str, Any]:
         if isinstance(raw, str) and Path(raw).is_absolute()
     ]
     if not pairs:
-        pairs = _local_pairs()
-    for _, source in pairs:
+        pairs = _default_pairs()
+    for name, source in pairs:
         try:
             source.parent.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             raise ValueError(f"Cannot create {source.parent}: {exc}") from exc
-        if _disk_free(source.parent) < _dir_size(source) + MIN_FREE_BYTES:
+        incoming = _dir_size(_pair_target(root, name))
+        if _disk_free(source.parent) < incoming + MIN_FREE_BYTES:
             raise ValueError(
                 f"Not enough free space next to {source.parent} to restore the models."
             )
@@ -327,6 +362,10 @@ def main(argv: list[str] | None = None) -> int:
         item.add_argument(
             "--hf-cache", action="store_true", help=f"also {command} the Hugging Face cache"
         )
+    use_item = sub.add_parser(
+        "use", help="point at a folder that already holds the models, without copying"
+    )
+    use_item.add_argument("destination", help="absolute path that already holds the models")
     sub.add_parser("restore", help="move models back to their original folders")
     args = parser.parse_args(argv)
     try:
@@ -339,6 +378,8 @@ def main(argv: list[str] | None = None) -> int:
                 Path(args.destination), move=args.command == "move", hf_cache=args.hf_cache
             )
             print(json.dumps(result, indent=2))
+        elif args.command == "use":
+            print(json.dumps(use(Path(args.destination)), indent=2))
         elif args.command == "restore":
             print(json.dumps(restore(), indent=2))
     except (ValueError, OSError, shutil.Error) as exc:

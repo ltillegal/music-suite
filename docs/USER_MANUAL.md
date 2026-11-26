@@ -1203,7 +1203,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | Variable | Default | What it changes |
 |---|---|---|
 | `AUDIOQI_DATA_DIR` | `data` in the Music Suite folder | Where all sessions, songs and models are kept. |
-| `MUSIC_SUITE_MODELS_DIR` | unset | Put downloaded models on another disk (for example `/Volumes/SSD/MusicSuiteModels`) without saving the choice. `./models.command move <path>` saves it instead. |
+| `MUSIC_SUITE_MODELS_DIR` | unset | Put downloaded models on another disk (for example `/Volumes/SSD/MusicSuiteModels`) without saving the choice. `./models.command move <path>` saves it instead; `./models.command use <path>` adopts models that are already on that disk. |
 | `MUSIC_SUITE_MODELS_CONFIG` | `models-root.json` in the data folder | The small file that remembers the chosen models root. The Mac app keeps it beside its other state in `~/Library/Application Support/Music Suite`. |
 | `MUSIC_SUITE_MAX_UPLOAD_BYTES` | 524288000 (500 MB) | The largest file you can upload or generate. |
 | `MUSIC_SUITE_MAX_AUDIO_DURATION_SECONDS` | 900 (15 minutes) | The longest song you can load. |
