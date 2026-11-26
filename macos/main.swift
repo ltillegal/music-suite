@@ -134,6 +134,18 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate, WKNavigationDelegate
         env["MUSIC_SUITE_SKIP_INSTALL"] = "1"
         task.environment = env
 
+        task.terminationHandler = { [weak self] finished in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                let code = finished.terminationStatus
+                logLine("start.command exited with \(code); see \(logPath)")
+                if code != 0 {
+                    self.statusField.stringValue =
+                        "Music Suite stopped (exit \(code)). Log: \(logPath)"
+                }
+            }
+        }
+
         do {
             try task.run()
             launcherTask = task

@@ -103,7 +103,35 @@ rsync -a \
   --exclude '__pycache__' --exclude '*.pyc' --exclude '.pytest_cache' \
   --exclude '.music-suite-processes.json' --exclude '.music-suite-install-state' \
   --exclude '/data' --exclude '/models' --exclude '/dist' \
+  --exclude '/.venv' --exclude '/.python' \
   "$ROOT/" "$SUITE/"
+
+# A venv is not relocatable: its bin/python is a symlink to the interpreter that
+# created it, which on a build machine is a path the user does not have. Bundle a
+# standalone CPython instead and install the package into it.
+echo "Bundling a relocatable Python runtime..."
+BUNDLED_PYTHON=0
+if ! command -v uv >/dev/null 2>&1; then
+  python3 -m pip install --quiet --user uv >/dev/null 2>&1 || true
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+if command -v uv >/dev/null 2>&1; then
+  if uv python install 3.12 >/dev/null 2>&1 || true; then
+    PY_ROOT="$(uv python find 3.12 2>/dev/null || true)"
+    if [[ -n "$PY_ROOT" ]]; then
+      PY_HOME="$(cd "$(dirname "$PY_ROOT")/.." && pwd)"
+      mkdir -p "$SUITE/.python"
+      rsync -a "$PY_HOME/" "$SUITE/.python/"
+      if uv pip install --python "$SUITE/.python/bin/python3.12" --quiet -e "$SUITE"; then
+        BUNDLED_PYTHON=1
+      fi
+    fi
+  fi
+fi
+if [[ "$BUNDLED_PYTHON" -eq 0 ]]; then
+  echo "Note: no standalone Python was bundled; the app will rely on a local .venv." >&2
+  rsync -a "$ROOT/.venv/" "$SUITE/.venv/"
+fi
 
 # The bundle has no .git directory, so match start.command's fallback revision.
 python3 -c 'import hashlib, pathlib; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join(hashlib.sha256(p.read_bytes()).hexdigest().upper() for p in files)+"-no-git-revision")' > "$SUITE/.music-suite-install-state"

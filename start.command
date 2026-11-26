@@ -12,6 +12,15 @@ STARTUP_TIMEOUT_SECONDS="${MUSIC_SUITE_STARTUP_TIMEOUT_SECONDS:-300}"
 cd "$ROOT"
 mkdir -p "$LOG_DIR" "$STATE_DIR"
 
+# A packaged app carries its own relocatable Python in .python; a source checkout
+# uses the virtualenv created by install.command.
+PYTHON="$ROOT/.venv/bin/python"
+if [[ -x "$ROOT/.python/bin/python3.12" ]]; then
+  PYTHON="$ROOT/.python/bin/python3.12"
+elif [[ -x "$ROOT/.python/bin/python3" ]]; then
+  PYTHON="$ROOT/.python/bin/python3"
+fi
+
 # The packaged app keeps its state outside the read-only .app bundle; the saved
 # external-models root belongs there too, so it survives app and bundle updates.
 if [[ -n "${MUSIC_SUITE_STATE_DIR:-}" && -z "${MUSIC_SUITE_MODELS_CONFIG:-}" ]]; then
@@ -67,7 +76,7 @@ manifest_hash() {
   else
     git_revision="no-git-revision"
   fi
-  .venv/bin/python -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$git_revision"
+  "$PYTHON" -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$git_revision"
 }
 
 find_available_port() {
@@ -89,7 +98,7 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 NEEDS_INSTALL=0
-[[ -x ".venv/bin/python" ]] || NEEDS_INSTALL=1
+[[ -x "$PYTHON" ]] || NEEDS_INSTALL=1
 [[ -d "apps/web-next/node_modules" ]] || NEEDS_INSTALL=1
 [[ -f "apps/web-next/.next/BUILD_ID" ]] || NEEDS_INSTALL=1
 [[ -f "$INSTALL_STATE" ]] || NEEDS_INSTALL=1
@@ -119,11 +128,11 @@ WEB_LOG="$LOG_DIR/web.log"
 : > "$WEB_LOG"
 
 # Cache downloads follow the chosen models root, if the user set one.
-if [[ -x .venv/bin/python ]]; then
-  eval "$(".venv/bin/python" -m audioqi.models_root shell-env 2>/dev/null || true)"
+if [[ -x "$PYTHON" ]]; then
+  eval "$("$PYTHON" -m audioqi.models_root shell-env 2>/dev/null || true)"
 fi
 
-.venv/bin/python -m uvicorn apps.api.main:app --host 127.0.0.1 --port "$API_PORT" >"$API_LOG" 2>&1 &
+"$PYTHON" -m uvicorn apps.api.main:app --host 127.0.0.1 --port "$API_PORT" >"$API_LOG" 2>&1 &
 API_PID=$!
 
 wait_for_url "http://127.0.0.1:$API_PORT/health" "Music Suite API" "$API_PID" "$API_LOG" || exit 1

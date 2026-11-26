@@ -29,6 +29,8 @@ jobs:
 
       # install.command skips the optional AI/stems/Surge downloads when stdin is
       # not a terminal and these flags are set, so the bundle stays small.
+      - uses: astral-sh/setup-uv@v6
+
       - name: Install dependencies
         env:
           MUSIC_SUITE_INSTALL_AI: "0"

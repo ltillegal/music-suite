@@ -58,6 +58,16 @@ def test_startup_waits_long_enough_for_a_cold_dependency_import() -> None:
     assert 'wait_for_url "http://127.0.0.1:$API_PORT/health"' in mac_startup
 
 
+def test_packaged_start_prefers_the_bundled_python() -> None:
+    startup = Path("start.command").read_text(encoding="utf-8")
+    # A .venv is not relocatable: its interpreter is a symlink to the machine that
+    # built it. The packaged app must run the bundled standalone Python instead.
+    assert '$ROOT/.python/bin/python3.12' in startup
+    assert 'PYTHON="$ROOT/.venv/bin/python"' in startup
+    assert '"$PYTHON" -m uvicorn apps.api.main:app' in startup
+    assert ".venv/bin/python -m uvicorn" not in startup
+
+
 def test_startup_records_service_logs_for_diagnosis() -> None:
     startup = Path("start.ps1").read_text(encoding="utf-8")
     assert "RedirectStandardOutput" in startup
