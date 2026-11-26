@@ -116,14 +116,22 @@ if ! command -v uv >/dev/null 2>&1; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 if command -v uv >/dev/null 2>&1; then
-  if uv python install 3.12 >/dev/null 2>&1 || true; then
-    PY_ROOT="$(uv python find 3.12 2>/dev/null || true)"
-    if [[ -n "$PY_ROOT" ]]; then
-      PY_HOME="$(cd "$(dirname "$PY_ROOT")/.." && pwd)"
+  # only-managed forces a python-build-standalone download: the runner's own
+  # framework Python would produce a binary (or a symlink) that does not exist
+  # on a user's Mac, which is exactly how v1.2 was broken.
+  if UV_PYTHON_INSTALL_DIR="$BUILD/python" UV_PYTHON_PREFERENCE=only-managed \
+       uv python install 3.12 >/dev/null 2>&1; then
+    PY_HOME="$(find "$BUILD/python" -maxdepth 1 -type d -name 'cpython-3.12*' | head -n 1)"
+    if [[ -n "$PY_HOME" ]]; then
       mkdir -p "$SUITE/.python"
       rsync -a "$PY_HOME/" "$SUITE/.python/"
-      if uv pip install --python "$SUITE/.python/bin/python3.12" --quiet -e "$SUITE"; then
-        BUNDLED_PYTHON=1
+      PY_BIN="$SUITE/.python/bin/python3.12"
+      if [[ -L "$PY_BIN" ]]; then
+        echo "The bundled Python is a symlink to $(readlink "$PY_BIN"); refusing it." >&2
+      elif [[ -x "$PY_BIN" ]] && [[ "$("$PY_BIN" -c 'import sys; print(sys.prefix)')" == "$SUITE"* ]]; then
+        if uv pip install --python "$PY_BIN" --quiet -e "$SUITE"; then
+          BUNDLED_PYTHON=1
+        fi
       fi
     fi
   fi
@@ -145,6 +153,11 @@ if [[ "$BUNDLED_PYTHON" -eq 1 ]]; then
     echo "The bundled Python is missing from the app; refusing to build." >&2
     exit 1
   fi
+  if [[ -L "$SUITE/.python/bin/python3.12" ]]; then
+    echo "The bundled Python is a symlink; it cannot survive moving the app." >&2
+    exit 1
+  fi
+  echo "Bundled Python: $("$SUITE/.python/bin/python3.12" -c 'import sys, platform; print(platform.python_version(), sys.prefix)')"
   if [[ -e "$SUITE/.venv" ]]; then
     echo "The app still carries a .venv next to .python; remove one of them." >&2
     exit 1
