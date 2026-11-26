@@ -218,6 +218,11 @@ def test_settings_round_trip_and_reject_bad_values(client: TestClient) -> None:
         "arranger": True,
         "acestep_server": False,
         "yue2": False,
+        "stable_audio3": False,
+        "heartmula": False,
+        "diffrhythm": False,
+        "minimax3": False,
+        "magenta_rt2": False,
         "elevenlabs": False,
         "fal": False,
         "lyria": False,
@@ -246,6 +251,7 @@ def test_overview_reports_missing_engine_without_starting_anything(client: TestC
     local = next(p for p in body["providers"] if p["id"] == "acestep_local")
     assert local["status"]["ready"] is False
     assert body["engine"] == {
+        "backend": "unknown",
         "built": False,
         "models": {"lm": [], "embedding": [], "dit": [], "vae": []},
         "missing_models": ["lm", "embedding", "dit", "vae"],
@@ -1116,7 +1122,7 @@ def test_yue2_needs_switching_on_setup_and_the_licence(client: TestClient, monke
     client.post("/generation/settings", json={"providers": {"yue2": True}})
     _, refused = _start(client, {"caption": "emo rock"}, provider="yue2")
     assert refused.status_code == 422 and "Please confirm" in refused.json()["detail"]
-    assert "commercially" in refused.json()["detail"]
+    assert "model terms and creator permissions" in refused.json()["detail"]
     _, unticked = _start(
         client, {"caption": "emo rock", "accept_noncommercial": False}, provider="yue2"
     )
@@ -1485,6 +1491,9 @@ def test_windows_build_targets_windows_10(tmp_path: Path, monkeypatch) -> None:
     """MinGW defaults to an old Windows version that hides CreateFile2 (cpp-httplib)."""
     commands: list[list[str]] = []
     monkeypatch.setattr(setup.sys, "platform", "win32")
+    # Faking sys.platform also makes shutil.which take its Windows branch, which
+    # needs the Windows-only _winapi module. Stand in for it so this runs anywhere.
+    monkeypatch.setattr(setup.shutil, "which", lambda name, *_a, **_k: f"/fake/{name}")
     monkeypatch.setattr(setup, "_run", lambda command, cwd, *_a: commands.append(command))
     monkeypatch.setattr(engine, "binary_path", lambda _t: None if not commands else tmp_path)
     setup._build(tmp_path, lambda *_a: None, force=True)

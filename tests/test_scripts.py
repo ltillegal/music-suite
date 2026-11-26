@@ -65,7 +65,10 @@ def test_startup_records_service_logs_for_diagnosis() -> None:
     assert "Get-LogTail" in startup
 
     mac_startup = Path("start.command").read_text(encoding="utf-8")
-    assert 'LOG_DIR="$ROOT/logs"' in mac_startup
+    # The directory may be overridden (the native launcher does that), so check the
+    # variable and its default instead of one exact literal.
+    assert "LOG_DIR=" in mac_startup
+    assert "$ROOT/logs" in mac_startup
     assert 'tail -n 20 "$log_file"' in mac_startup
 
     assert "logs/" in Path(".gitignore").read_text(encoding="utf-8")
@@ -178,12 +181,15 @@ def test_port_detection_does_not_depend_on_the_windows_language() -> None:
 
 def test_only_one_readme_exists() -> None:
     # "data" holds user data and the optional AI engine checkout, which ships its own README.
-    generated = {".venv", ".next", ".pytest_cache", ".obsolete-cache", "node_modules", "data"}
-    readmes = [
-        path
-        for path in Path(".").rglob("README.md")
-        if not generated.intersection(path.parts)
-    ]
+    generated = {".next", ".pytest_cache", ".obsolete-cache", "node_modules", "data"}
+
+    def is_generated(parts: tuple[str, ...]) -> bool:
+        return any(
+            part in generated or part.startswith(".venv") or part == "site-packages"
+            for part in parts
+        )
+
+    readmes = [path for path in Path(".").rglob("README.md") if not is_generated(path.parts)]
     assert readmes == [Path("README.md")]
 
 

@@ -148,7 +148,9 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate, WKNavigationDelegate
         guard !polling else { return }
         polling = true
         polls += 1
-        logLine("poll #\(polls) enter")
+        if polls % 10 == 0 {
+            logLine("poll #\(polls) enter")
+        }
 
         var webPort: Int?
         if let data = try? Data(contentsOf: stateURL),
@@ -156,7 +158,9 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate, WKNavigationDelegate
             webPort = json["web_port"] as? Int
         }
 
-        logLine("poll #\(polls) state=\(FileManager.default.fileExists(atPath: stateURL.path)) port=\(webPort.map(String.init) ?? "none")")
+        if polls % 10 == 0 {
+            logLine("poll #\(polls) state=\(FileManager.default.fileExists(atPath: stateURL.path)) port=\(webPort.map(String.init) ?? "none")")
+        }
         guard let port = webPort else {
             if polls % 10 == 0 {
                 statusField.stringValue = "Starting Music Suite… (\(polls * 2)s)"
@@ -171,7 +175,9 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate, WKNavigationDelegate
         let request = URLRequest(url: candidate, timeoutInterval: 2)
         URLSession.shared.dataTask(with: request) { [weak self] _, response, error in
             let ok = (response as? HTTPURLResponse)?.statusCode == 200
-            logLine("probe \(candidate.absoluteString): status=\((response as? HTTPURLResponse)?.statusCode ?? -1) error=\(error?.localizedDescription ?? "none")")
+            if !ok {
+                logLine("probe \(candidate.absoluteString): status=\((response as? HTTPURLResponse)?.statusCode ?? -1) error=\(error?.localizedDescription ?? "none")")
+            }
             DispatchQueue.main.async {
                 guard let self else { return }
                 self.polling = false

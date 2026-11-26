@@ -40,9 +40,18 @@ rm -rf "$APP" "$DMG"
 mkdir -p "$DIST" "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 echo "Compiling native launcher..."
-swiftc -O "$ROOT/macos/main.swift" \
-  -o "$APP/Contents/MacOS/MusicSuiteLauncher" \
-  -framework AppKit -framework WebKit
+# The release DMG is Apple Silicon only; build for arm64 explicitly so an Intel
+# host cannot silently produce a binary this project does not ship.
+if [[ "$(uname -m)" == "arm64" ]]; then
+  swiftc -O -target arm64-apple-macos12.0 "$ROOT/macos/main.swift" \
+    -o "$APP/Contents/MacOS/MusicSuiteLauncher" \
+    -framework AppKit -framework WebKit
+else
+  echo "Note: building on $(uname -m); the released DMG is Apple Silicon only." >&2
+  swiftc -O "$ROOT/macos/main.swift" \
+    -o "$APP/Contents/MacOS/MusicSuiteLauncher" \
+    -framework AppKit -framework WebKit
+fi
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -93,6 +102,7 @@ rsync -a \
   --exclude '/.git' --exclude '/dist' --exclude '/logs' \
   --exclude '__pycache__' --exclude '*.pyc' --exclude '.pytest_cache' \
   --exclude '.music-suite-processes.json' --exclude '.music-suite-install-state' \
+  --exclude '/data' --exclude '/models' --exclude '/dist' \
   "$ROOT/" "$SUITE/"
 
 # The bundle has no .git directory, so match start.command's fallback revision.
