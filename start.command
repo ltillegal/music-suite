@@ -2,12 +2,26 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-PID_FILE="$ROOT/.music-suite-processes.json"
-LOG_DIR="$ROOT/logs"
+# A packaged .app lives in a read-only bundle, so runtime state can be redirected.
+STATE_DIR="${MUSIC_SUITE_STATE_DIR:-$ROOT}"
+PID_FILE="$STATE_DIR/.music-suite-processes.json"
+LOG_DIR="${MUSIC_SUITE_LOG_DIR:-$ROOT/logs}"
+INSTALL_STATE="$STATE_DIR/.music-suite-install-state"
 # A cold first start imports the full audio stack, so readiness can take minutes on slow disks.
 STARTUP_TIMEOUT_SECONDS="${MUSIC_SUITE_STARTUP_TIMEOUT_SECONDS:-300}"
 cd "$ROOT"
-mkdir -p "$LOG_DIR"
+mkdir -p "$LOG_DIR" "$STATE_DIR"
+
+# Homebrew binaries (pnpm/node) are not on PATH in Finder/SSH shells on macOS.
+if ! command -v brew >/dev/null 2>&1; then
+  [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -x /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+open_url() {
+  [[ "${MUSIC_SUITE_NO_BROWSER:-0}" == "1" ]] && return 0
+  open "$1" 2>/dev/null || true
+}
 
 echo "Geekatplay Studio Music Suite - Startup"
 
@@ -52,13 +66,13 @@ find_available_port() {
 }
 
 if [[ -f "$PID_FILE" ]]; then
-  EXISTING_WEB_PORT="$(python3 -c 'import json, pathlib; print(json.loads(pathlib.Path(".music-suite-processes.json").read_text()).get("web_port", ""))' 2>/dev/null || true)"
-  EXISTING_API_PORT="$(python3 -c 'import json, pathlib; print(json.loads(pathlib.Path(".music-suite-processes.json").read_text()).get("api_port", ""))' 2>/dev/null || true)"
+  EXISTING_WEB_PORT="$(python3 -c 'import json, pathlib, sys; print(json.loads(pathlib.Path(sys.argv[1]).read_text()).get("web_port", ""))' "$PID_FILE" 2>/dev/null || true)"
+  EXISTING_API_PORT="$(python3 -c 'import json, pathlib, sys; print(json.loads(pathlib.Path(sys.argv[1]).read_text()).get("api_port", ""))' "$PID_FILE" 2>/dev/null || true)"
   if [[ "$EXISTING_WEB_PORT" =~ ^[0-9]+$ && "$EXISTING_API_PORT" =~ ^[0-9]+$ ]] && \
      curl -fsS "http://127.0.0.1:$EXISTING_API_PORT/health" >/dev/null 2>&1 && \
      curl -fsS "http://127.0.0.1:$EXISTING_WEB_PORT/" >/dev/null 2>&1; then
     echo "Music Suite is already running at http://127.0.0.1:$EXISTING_WEB_PORT"
-    open "http://127.0.0.1:$EXISTING_WEB_PORT" 2>/dev/null || true
+    open_url "http://127.0.0.1:$EXISTING_WEB_PORT"
     exit 0
   fi
 fi
@@ -67,8 +81,8 @@ NEEDS_INSTALL=0
 [[ -x ".venv/bin/python" ]] || NEEDS_INSTALL=1
 [[ -d "apps/web-next/node_modules" ]] || NEEDS_INSTALL=1
 [[ -f "apps/web-next/.next/BUILD_ID" ]] || NEEDS_INSTALL=1
-[[ -f ".music-suite-install-state" ]] || NEEDS_INSTALL=1
-if [[ "$NEEDS_INSTALL" -eq 0 ]] && [[ "$(tr -d '\r\n' < .music-suite-install-state)" != "$(manifest_hash)" ]]; then
+[[ -f "$INSTALL_STATE" ]] || NEEDS_INSTALL=1
+if [[ "$NEEDS_INSTALL" -eq 0 ]] && [[ "$(tr -d '\r\n' < "$INSTALL_STATE")" != "$(manifest_hash)" ]]; then
   NEEDS_INSTALL=1
 fi
 if [[ "$NEEDS_INSTALL" -eq 1 ]]; then
@@ -107,9 +121,9 @@ wait_for_url "http://127.0.0.1:$WEB_PORT/" "Music Suite web" "$WEB_PID" "$WEB_LO
 
 API_RUNTIME_PID="$(lsof -tiTCP:"$API_PORT" -sTCP:LISTEN | head -n 1)"
 WEB_RUNTIME_PID="$(lsof -tiTCP:"$WEB_PORT" -sTCP:LISTEN | head -n 1)"
-python3 -c 'import datetime, json, pathlib, sys, uuid; keys=("project_root","api_port","api_launcher_pid","api_pid","web_port","web_launcher_pid","web_pid"); vals=(sys.argv[1], *map(int, sys.argv[2:])); data=dict(zip(keys, vals)); data.update(schema_version=2, instance_id=str(uuid.uuid4()), started_at=datetime.datetime.now(datetime.timezone.utc).isoformat()); pathlib.Path(sys.argv[1], ".music-suite-processes.json").write_text(json.dumps(data, indent=2)+"\n")' "$ROOT" "$API_PORT" "$API_PID" "$API_RUNTIME_PID" "$WEB_PORT" "$WEB_PID" "$WEB_RUNTIME_PID"
+python3 -c 'import datetime, json, pathlib, sys, uuid; keys=("project_root","api_port","api_launcher_pid","api_pid","web_port","web_launcher_pid","web_pid"); vals=(sys.argv[1], *map(int, sys.argv[3:])); data=dict(zip(keys, vals)); data.update(schema_version=2, instance_id=str(uuid.uuid4()), started_at=datetime.datetime.now(datetime.timezone.utc).isoformat()); pathlib.Path(sys.argv[2]).write_text(json.dumps(data, indent=2)+"\n")' "$ROOT" "$PID_FILE" "$API_PORT" "$API_PID" "$API_RUNTIME_PID" "$WEB_PORT" "$WEB_PID" "$WEB_RUNTIME_PID"
 
-open "http://127.0.0.1:$WEB_PORT" 2>/dev/null || true
+open_url "http://127.0.0.1:$WEB_PORT"
 echo "Music Suite is running at http://127.0.0.1:$WEB_PORT"
 echo "API: http://127.0.0.1:$API_PORT"
 [[ "$WEB_PORT" == "3000" ]] || echo "Preferred web port 3000 was busy; selected $WEB_PORT."

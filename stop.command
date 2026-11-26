@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-PID_FILE="$ROOT/.music-suite-processes.json"
+STATE_DIR="${MUSIC_SUITE_STATE_DIR:-$ROOT}"
+PID_FILE="$STATE_DIR/.music-suite-processes.json"
 cd "$ROOT"
 
 echo "Geekatplay Studio Music Suite - Shutdown"
@@ -12,7 +13,7 @@ if [[ ! -f "$PID_FILE" ]]; then
   exit 0
 fi
 
-RECORDED_ROOT="$(python3 -c 'import json, pathlib; print(json.loads(pathlib.Path(".music-suite-processes.json").read_text()).get("project_root", ""))')"
+RECORDED_ROOT="$(python3 -c 'import json, pathlib, sys; print(json.loads(pathlib.Path(sys.argv[1]).read_text()).get("project_root", ""))' "$PID_FILE")"
 if [[ "$RECORDED_ROOT" != "$ROOT" ]]; then
   echo "The runtime file belongs to another project directory. No processes were changed."
   exit 1
@@ -35,7 +36,7 @@ stop_tree() {
 PIDS=()
 while read -r pid; do
   [[ "$pid" =~ ^[0-9]+$ ]] && PIDS+=("$pid")
-done < <(python3 -c 'import json, pathlib; data=json.loads(pathlib.Path(".music-suite-processes.json").read_text()); print(*[value for key, value in data.items() if key.endswith("_pid") and isinstance(value, int)], sep="\n")')
+done < <(python3 -c 'import json, pathlib, sys; data=json.loads(pathlib.Path(sys.argv[1]).read_text()); print(*[value for key, value in data.items() if key.endswith("_pid") and isinstance(value, int)], sep="\n")' "$PID_FILE")
 
 STOPPED=0
 for pid in "${PIDS[@]:-}"; do

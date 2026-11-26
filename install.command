@@ -3,12 +3,23 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
+mkdir -p "${MUSIC_SUITE_STATE_DIR:-$ROOT}"
 
 echo "Geekatplay Studio Music Suite - Installer"
 echo "This will install Homebrew, Python, FFmpeg, and Node.js if they are missing."
 echo
 
 # --- Homebrew (package manager for everything below) ---
+# On Apple Silicon Homebrew lives in /opt/homebrew. Shells started by Finder or
+# over SSH often skip ~/.zprofile, so brew is installed but absent from PATH.
+# Make it visible before checking versions, otherwise we would reinstall stuff.
+if ! command -v brew >/dev/null 2>&1; then
+  if [[ -x "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
+fi
 if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew not found. Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -28,7 +39,9 @@ python_is_supported() {
 
 find_supported_python() {
   local candidate
-  for candidate in python3 python3.14 python3.13 python3.12; do
+  for candidate in python3.12 python3.13 python3.14 python3 \
+                   /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.13 \
+                   /usr/local/bin/python3.12 /usr/local/bin/python3.13; do
     if command -v "$candidate" >/dev/null 2>&1 && python_is_supported "$candidate"; then
       command -v "$candidate"
       return 0
@@ -101,7 +114,13 @@ cd "$ROOT"
 case "${MUSIC_SUITE_INSTALL_AI:-ask}" in
   0) echo "Skipping the local AI music engine (MUSIC_SUITE_INSTALL_AI=0)." ;;
   1) .venv/bin/python -m audioqi.generation.setup --yes || true ;;
-  *) .venv/bin/python -m audioqi.generation.setup --ask || true ;;
+  *)
+    if [[ -t 0 ]]; then
+      .venv/bin/python -m audioqi.generation.setup --ask || true
+    else
+      echo "Non-interactive install: skipping optional AI engine (set MUSIC_SUITE_INSTALL_AI=1 to install)."
+    fi
+    ;;
 esac
 
 # --- Optional: AI stem separation (6 stems, drum kit pieces, lead/backing vocals) ---
@@ -117,7 +136,7 @@ if [ "${MUSIC_SUITE_INSTALL_SURGE:-0}" = "1" ]; then
 fi
 
 GIT_REVISION="$(git rev-parse HEAD 2>/dev/null || printf 'no-git-revision')"
-.venv/bin/python -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$GIT_REVISION" > .music-suite-install-state
+.venv/bin/python -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$GIT_REVISION" > "${MUSIC_SUITE_STATE_DIR:-$ROOT}/.music-suite-install-state"
 
 echo
 echo "Installation complete. Double-click start.command to launch Music Suite."

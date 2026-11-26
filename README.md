@@ -17,6 +17,30 @@
 
 Extract the ZIP, then double-click **`install.bat`**. Beginner guides: [English](docs/WINDOWS_INSTALL_GUIDE.md) · [Русский](docs/WINDOWS_INSTALL_GUIDE_RU.md)
 
+### macOS (Apple Silicon / Intel, tested on Mac mini M1 with macOS 15 Sequoia)
+
+Requires Homebrew and Xcode Command Line Tools (`xcode-select --install`). The scripts find Homebrew automatically even when it is not on `PATH` (Finder/SSH shells on macOS often skip `~/.zprofile`).
+
+```bash
+git clone https://github.com/ltillegal/music-suite.git
+cd music-suite
+./install.command     # Homebrew Python 3.12, FFmpeg, Node 22+, pnpm, venv, web build
+./start.command       # starts API + web UI and opens the browser
+./stop.command        # stops only the instance started from this directory
+```
+
+Optional AI engine/stems/Surge downloads are skipped in non-interactive installs; enable them with `MUSIC_SUITE_INSTALL_AI=1`, `MUSIC_SUITE_INSTALL_STEMS=1`, `MUSIC_SUITE_INSTALL_SURGE=1`.
+
+To build a native app with a WKWebView window and a DMG installer:
+
+```bash
+./scripts/build_macos_app.sh
+# -> dist/Music Suite.app
+# -> dist/Music Suite.dmg
+```
+
+The `.app` keeps its runtime state in `~/Library/Application Support/Music Suite`, so it also works from a read-only DMG or `/Applications`.
+
 The [user manual](docs/USER_MANUAL.md) explains every workspace and setting. It is also built into the app: press **Help** on any page, or the **?** next to a setting.
 
 <img src="docs/images/geometry-mapper.png" alt="Song Geometry Mapper rendering a full-song 3D spectral map" width="100%">
