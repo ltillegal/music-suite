@@ -147,6 +147,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
         guard !polling else { return }
         polling = true
         polls += 1
+        logLine("poll #\(polls) enter")
 
         var webPort: Int?
         if let data = try? Data(contentsOf: stateURL),
@@ -154,6 +155,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
             webPort = json["web_port"] as? Int
         }
 
+        logLine("poll #\(polls) state=\(FileManager.default.fileExists(atPath: stateURL.path)) port=\(webPort.map(String.init) ?? "none")")
         guard let port = webPort else {
             if polls % 10 == 0 {
                 statusField.stringValue = "Starting Music Suite… (\(polls * 2)s)"
