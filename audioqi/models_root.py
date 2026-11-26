@@ -78,14 +78,26 @@ def separator_dir() -> Path:
 
 
 def engine_models_dir() -> Path:
+    """The engine's weight folder: the current one, or its place on an external root."""
+    if configured_root() is None:
+        from audioqi.generation import settings as generation_settings
+
+        return generation_settings.engine_dir() / "models"
     return models_root() / ENGINE_DIR / "models"
 
 
 def hf_cache_dir() -> Path:
+    """The Hugging Face cache in use, or its place on an external root."""
+    if configured_root() is None:
+        return Path(os.environ.get("HF_HOME") or Path.home() / ".cache" / "huggingface")
     return models_root() / HF_DIR
 
 
 def comfyui_checkpoints_dir() -> Path:
+    if configured_root() is None:
+        explicit = os.environ.get("COMFYUI_CHECKPOINTS_DIR", "").strip()
+        if explicit:
+            return Path(explicit).expanduser().resolve()
     return models_root() / COMFY_DIR / "checkpoints"
 
 
@@ -219,8 +231,7 @@ def migrate(destination: Path, *, move: bool, hf_cache: bool = False) -> dict[st
         raise ValueError("The destination must be an absolute path.")
     pairs = list(_local_pairs())
     if hf_cache:
-        source = Path(os.environ.get("HF_HOME") or Path.home() / ".cache" / "huggingface")
-        pairs.append(("huggingface-cache", source))
+        pairs.append(("huggingface-cache", hf_cache_dir()))
     _check_destination(destination, pairs)
     copied: dict[str, int] = {}
     for name, source in pairs:

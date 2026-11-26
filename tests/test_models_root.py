@@ -42,6 +42,8 @@ def test_default_paths_and_status(isolated: Path) -> None:
     assert settings.models_dir() == weights
     report = models_root.status()
     assert report["source"] == "default" and report["external"] is False
+    assert report["separator_dir"] == str(split)
+    assert report["engine_models_dir"] == str(weights)
     assert report["separator_bytes"] == 4096 and report["engine_models_bytes"] == 8192
     assert engine.list_models()["vae"] == ["vae-BF16.gguf"]
 
