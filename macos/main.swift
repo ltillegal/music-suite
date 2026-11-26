@@ -25,7 +25,7 @@ private func logLine(_ message: String) {
     }
 }
 
-final class SuiteLauncher: NSObject, NSApplicationDelegate {
+final class SuiteLauncher: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     private var window: NSWindow!
     private var webView: WKWebView!
     private var statusField: NSTextField!
@@ -92,6 +92,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
         statusField.translatesAutoresizingMaskIntoConstraints = false
 
         webView = WKWebView(frame: .zero)
+        webView.navigationDelegate = self
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.isHidden = true
         root.addSubview(statusField)
@@ -189,11 +190,23 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
         }
     }
 
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        logLine("webview finished: \(webView.url?.absoluteString ?? "unknown")")
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        logLine("webview failed: \(error.localizedDescription)")
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        logLine("webview provisional failure: \(error.localizedDescription)")
+    }
+
     private func show(_ url: URL) {
         statusField.stringValue = "Music Suite · 127.0.0.1:\(url.port ?? 0)"
         webView.isHidden = false
         webView.load(URLRequest(url: url))
-        logLine("UI ready at \(url.absoluteString)")
+        logLine("UI ready at \(url.absoluteString), hidden=\(webView.isHidden)")
     }
 }
 
