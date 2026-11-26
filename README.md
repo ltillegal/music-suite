@@ -538,6 +538,24 @@ After an update, restart Music Suite. The start launcher fingerprints the Git re
 
 ---
 
+## Keeping up with upstream
+
+This fork tracks `GeekatplayStudio/music-suite`. To pull the author's changes:
+
+```bash
+./scripts/sync_upstream.sh          # merge into sync/upstream-YYYYMMDD and run the tests
+./scripts/sync_upstream.sh --push   # also push the branch and open a pull request
+```
+
+The merge never lands on `main` directly. A scheduled workflow runs the same
+routine every Monday and opens a pull request when upstream has moved. When the
+two sides touch the same lines the workflow fails on purpose and says so — resolve
+those locally, and check `audioqi/generation/settings.py` first: both sides have
+edited `models_dir()` and a clean auto-merge once left two definitions behind.
+
+Fork-only code lives in files upstream does not have (`audioqi/models_root.py`,
+`macos/`, `scripts/build_macos_app.sh`), which keeps the merge surface small.
+
 ## Project layout
 
 ```text
