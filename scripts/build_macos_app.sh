@@ -32,7 +32,7 @@ fi
 
 DIST="$ROOT/dist"
 APP="$DIST/Music Suite.app"
-DMG="$DIST/Music Suite.dmg"
+DMG="$DIST/MusicSuite.dmg"
 BUILD="$(mktemp -d "${TMPDIR:-/tmp}/music-suite-app.XXXXXX")"
 trap 'rm -rf "$BUILD"' EXIT
 

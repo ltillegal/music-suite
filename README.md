@@ -36,7 +36,7 @@ To build a native app with a WKWebView window and a DMG installer:
 ```bash
 ./scripts/build_macos_app.sh
 # -> dist/Music Suite.app
-# -> dist/Music Suite.dmg
+# -> dist/MusicSuite.dmg
 ```
 
 The `.app` keeps its runtime state in `~/Library/Application Support/Music Suite`, so it also works from a read-only DMG or `/Applications`.
