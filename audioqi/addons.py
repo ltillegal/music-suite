@@ -33,7 +33,6 @@ from pathlib import Path
 from typing import Any
 
 from audioqi import models_root
-from audioqi.editor import projects
 from audioqi.editor.projects import EditorError
 
 PIP_TIMEOUT_SECONDS = 2 * 60 * 60

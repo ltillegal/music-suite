@@ -164,7 +164,7 @@ def _write_config(root: Path, original: dict[str, str]) -> None:
         path,
         {
             "root": str(root),
-            "moved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "moved_at": dt.datetime.now(dt.UTC).isoformat(),
             "original": original,
         },
     )
