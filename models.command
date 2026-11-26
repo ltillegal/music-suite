@@ -7,7 +7,13 @@ set -euo pipefail
 #           ./models.command restore
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-STATE_DIR="${MUSIC_SUITE_STATE_DIR:-$ROOT}"
+if [[ -n "${MUSIC_SUITE_STATE_DIR:-}" ]]; then
+  STATE_DIR="$MUSIC_SUITE_STATE_DIR"
+elif [[ "$ROOT" == *".app/Contents/Resources/suite" ]]; then
+  STATE_DIR="$HOME/Library/Application Support/Music Suite"
+else
+  STATE_DIR="$ROOT"
+fi
 if [[ -z "${MUSIC_SUITE_MODELS_CONFIG:-}" ]]; then
   export MUSIC_SUITE_MODELS_CONFIG="$STATE_DIR/models-root.json"
 fi
