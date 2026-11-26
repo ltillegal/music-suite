@@ -54,8 +54,13 @@ wait_for_url() {
 }
 
 manifest_hash() {
-  local git_revision
-  git_revision="$(git rev-parse HEAD 2>/dev/null || printf 'no-git-revision')"
+  local git_revision git_toplevel
+  git_toplevel="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  if [[ -n "$git_toplevel" && "$(cd "$git_toplevel" && pwd -P)" == "$(cd "$ROOT" && pwd -P)" ]]; then
+    git_revision="$(git rev-parse HEAD 2>/dev/null || printf 'no-git-revision')"
+  else
+    git_revision="no-git-revision"
+  fi
   .venv/bin/python -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$git_revision"
 }
 
@@ -86,7 +91,11 @@ if [[ "$NEEDS_INSTALL" -eq 0 ]] && [[ "$(tr -d '\r\n' < "$INSTALL_STATE")" != "$
   NEEDS_INSTALL=1
 fi
 if [[ "$NEEDS_INSTALL" -eq 1 ]]; then
-  "$ROOT/install.command"
+  if [[ "${MUSIC_SUITE_SKIP_INSTALL:-0}" == "1" ]]; then
+    echo "Dependencies look out of date, but automatic install is disabled for this packaged app." >&2
+  else
+    "$ROOT/install.command"
+  fi
 fi
 
 API_PORT="$(find_available_port 8008)"

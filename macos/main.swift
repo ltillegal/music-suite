@@ -117,6 +117,7 @@ final class SuiteLauncher: NSObject, NSApplicationDelegate {
         env["MUSIC_SUITE_STATE_DIR"] = supportPath
         env["MUSIC_SUITE_LOG_DIR"] = (supportPath as NSString).appendingPathComponent("logs")
         env["MUSIC_SUITE_INSTALL_AI"] = "0"
+        env["MUSIC_SUITE_SKIP_INSTALL"] = "1"
         task.environment = env
 
         do {

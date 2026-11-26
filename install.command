@@ -135,7 +135,12 @@ if [ "${MUSIC_SUITE_INSTALL_SURGE:-0}" = "1" ]; then
   .venv/bin/python -m audioqi.editor.instruments install surge-xt || echo "Surge XT was not installed. Try again from Models & engines in the app."
 fi
 
+# A packaged app lives under a source checkout; git must not pick up the parent repo.
 GIT_REVISION="$(git rev-parse HEAD 2>/dev/null || printf 'no-git-revision')"
+GIT_TOPLEVEL="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$GIT_TOPLEVEL" || "$(cd "$GIT_TOPLEVEL" && pwd -P)" != "$(cd "$ROOT" && pwd -P)" ]]; then
+  GIT_REVISION="no-git-revision"
+fi
 .venv/bin/python -c 'import hashlib, pathlib, sys; files=(pathlib.Path("pyproject.toml"), pathlib.Path("apps/web-next/pnpm-lock.yaml")); print("-".join([*(hashlib.sha256(path.read_bytes()).hexdigest().upper() for path in files), sys.argv[1]]))' "$GIT_REVISION" > "${MUSIC_SUITE_STATE_DIR:-$ROOT}/.music-suite-install-state"
 
 echo
