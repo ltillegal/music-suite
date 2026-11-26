@@ -48,21 +48,24 @@ def test_default_paths_and_status(isolated: Path) -> None:
     assert engine.list_models()["vae"] == ["vae-BF16.gguf"]
 
 
-def test_environment_override_wins_over_saved_config(isolated: Path, tmp_path: Path) -> None:
+def test_environment_override_wins_over_saved_config(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     external = tmp_path / "external"
     external.mkdir()
     models_root._write_config(external, {})
     assert models_root.configured_root() == external
-    os.environ[models_root.ENV_ROOT] = str(tmp_path / "one-off")
+    monkeypatch.setenv(models_root.ENV_ROOT, str(tmp_path / "one-off"))
     assert models_root.models_root() == tmp_path / "one-off"
     assert models_root.root_source() == "environment"
-    del os.environ[models_root.ENV_ROOT]
 
 
-def test_environment_and_cache_exports(isolated: Path, tmp_path: Path) -> None:
+def test_environment_and_cache_exports(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     external = tmp_path / "external"
     external.mkdir()
-    os.environ[models_root.ENV_ROOT] = str(external)
+    monkeypatch.setenv(models_root.ENV_ROOT, str(external))
     fragment = models_root.shell_env()
     assert "export HF_HOME=" in fragment
     assert "export COMFYUI_CHECKPOINTS_DIR=" in fragment
@@ -75,11 +78,13 @@ def test_environment_and_cache_exports(isolated: Path, tmp_path: Path) -> None:
     assert models_root.shell_env() == ""  # already exported; nothing left to do
 
 
-def test_explicit_cache_location_is_kept(isolated: Path, tmp_path: Path) -> None:
+def test_explicit_cache_location_is_kept(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     external = tmp_path / "external"
     external.mkdir()
-    os.environ[models_root.ENV_ROOT] = str(external)
-    os.environ["HF_HOME"] = "/custom/cache"
+    monkeypatch.setenv(models_root.ENV_ROOT, str(external))
+    monkeypatch.setenv("HF_HOME", "/custom/cache")
     models_root.apply_environment()
     assert os.environ["HF_HOME"] == "/custom/cache"
 
@@ -125,10 +130,12 @@ def test_copy_keeps_the_originals_and_move_refuses_a_nonempty_target(
     assert models_root.models_root() == isolated / "models"
 
 
-def test_restore_refuses_an_environment_override(isolated: Path, tmp_path: Path) -> None:
+def test_restore_refuses_an_environment_override(
+    isolated: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     external = tmp_path / "external"
     models_root.migrate(external, move=True)
-    os.environ[models_root.ENV_ROOT] = str(external)
+    monkeypatch.setenv(models_root.ENV_ROOT, str(external))
     with pytest.raises(ValueError, match="Unset"):
         models_root.restore()
     assert models_root.config_path().is_file()
