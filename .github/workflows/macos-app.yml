@@ -1,0 +1,52 @@
+name: macOS app
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: macos-app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dmg:
+    runs-on: macos-14
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # install.command skips the optional AI/stems/Surge downloads when stdin is
+      # not a terminal and these flags are set, so the bundle stays small.
+      - name: Install dependencies
+        env:
+          MUSIC_SUITE_INSTALL_AI: "0"
+          MUSIC_SUITE_INSTALL_STEMS: "0"
+          MUSIC_SUITE_INSTALL_SURGE: "0"
+        run: ./install.command
+
+      - name: Build the app and the DMG
+        run: ./scripts/build_macos_app.sh
+
+      - name: Show the result
+        run: ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicSuite-dmg
+          path: dist/*.dmg
+          if-no-files-found: error
+
+      - name: Attach the DMG to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          fail_on_unmatched_files: true
