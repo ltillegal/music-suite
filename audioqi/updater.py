@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import threading
@@ -10,7 +11,11 @@ import requests
 
 from audioqi import __version__
 
-REPOSITORY = "GeekatplayStudio/music-suite"
+# Overridable so a fork can check its own repository without patching the code.
+REPOSITORY = (
+    os.environ.get("MUSIC_SUITE_UPDATE_REPOSITORY", "").strip()
+    or "GeekatplayStudio/music-suite"
+)
 REPOSITORY_URL = f"https://github.com/{REPOSITORY}"
 UPDATE_BRANCH = "main"
 GITHUB_COMMIT_API = f"https://api.github.com/repos/{REPOSITORY}/commits/{UPDATE_BRANCH}"
@@ -71,15 +76,23 @@ def _remote_commit(timeout_seconds: float = 10.0) -> str:
                 "User-Agent": f"Geekatplay-Music-Suite/{__version__}",
                 "X-GitHub-Api-Version": "2022-11-28",
             },
-            timeout=(3.05, timeout_seconds),
+            # api.github.com is slow or unreachable on some networks; a 3 s connect
+            # timeout turned a temporary outage into a scary error in the UI.
+            timeout=(10.0, max(20.0, timeout_seconds)),
             allow_redirects=False,
         )
         response.raise_for_status()
         if len(response.content) > 256 * 1024:
             raise UpdateError("GitHub update response exceeded the safety limit.")
         payload = response.json()
+    except requests.exceptions.ConnectTimeout as exc:
+        raise UpdateError(
+            "Could not reach api.github.com to check for updates. "
+            "The network may be blocking it; try again later."
+        ) from exc
     except (requests.RequestException, ValueError) as exc:
-        raise UpdateError(f"Could not check GitHub for updates: {exc}") from exc
+        detail = str(exc).strip().replace("\n", " ")[:160]
+        raise UpdateError(f"Update check failed: {detail}") from exc
     commit = str(payload.get("sha", "")).strip().lower() if isinstance(payload, dict) else ""
     if not SHA_PATTERN.fullmatch(commit):
         raise UpdateError("GitHub returned an invalid update revision.")
