@@ -12,6 +12,7 @@ import type {
   ProjectState,
   ProjectSummary
 } from "@/lib/editor/types";
+import { localizeServerFields, localizeServerText, serverMessagesReady } from "@/lib/i18n/server-messages";
 
 const BASE = "/suite-api/editor";
 
@@ -23,12 +24,14 @@ export interface Audition {
   state?: string;
 }
 
+const PROJECT_DATA = /^\/projects(\/[^/]+)?(\/state|\/rename)?$/;
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, { ...init, cache: "no-store" });
+    res = (await Promise.all([fetch(`${BASE}${path}`, { ...init, cache: "no-store" }), serverMessagesReady()]))[0];
   } catch {
-    throw new Error("Could not reach the Music Suite API. Restart Music Suite with its start launcher.");
+    throw new Error(localizeServerText("Could not reach the Music Suite API. Restart Music Suite with its start launcher."));
   }
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
@@ -38,9 +41,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       /* non-JSON error body */
     }
-    throw new Error(message);
+    throw new Error(localizeServerText(message));
   }
-  return (await res.json()) as T;
+  const body = (await res.json()) as T;
+  // A project's own data (its state, clip and track names) goes back to the server as it came.
+  return PROJECT_DATA.test(path) ? body : localizeServerFields(body);
 }
 
 function json(body: unknown): RequestInit {
@@ -71,8 +76,13 @@ export const editorApi = {
   pluginSounds: (pluginId: string) => request<{ sounds: PluginSound[] }>(`/plugins/${pluginId}/sounds`),
   pluginSoundState: (pluginId: string, soundId: string) =>
     request<{ name: string; state: string }>(`/plugins/${pluginId}/sounds/${soundId}`, { method: "POST" }),
-  installInstrument: (instrumentId: string) =>
-    request<InstrumentOffer>(`/instruments/${instrumentId}/install`, { method: "POST" }),
+  /** Into Music Suite's own folder, or with `forDaws` into the user's VST3 folder too. */
+  installInstrument: (instrumentId: string, forDaws = false) =>
+    request<InstrumentOffer>(`/instruments/${instrumentId}/install`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ for_daws: forDaws })
+    }),
   listProjects: () => request<ProjectSummary[]>("/projects"),
   createProject: (name: string) => request<ProjectDetail>("/projects", json({ name })),
   getProject: (id: string) => request<ProjectDetail>(`/projects/${id}`),
@@ -114,10 +124,10 @@ export const editorApi = {
   encode: async (wav: Blob, format: "mp3" | "flac"): Promise<Blob> => {
     const form = new FormData();
     form.append("file", new File([wav], "mix.wav", { type: "audio/wav" }));
-    const res = await fetch(`${BASE}/export/${format}`, { method: "POST", body: form, cache: "no-store" });
+    const res = (await Promise.all([fetch(`${BASE}/export/${format}`, { method: "POST", body: form, cache: "no-store" }), serverMessagesReady()]))[0];
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { detail?: unknown } | null;
-      throw new Error(typeof body?.detail === "string" ? body.detail : `Encoding failed (${res.status})`);
+      throw new Error(localizeServerText(typeof body?.detail === "string" ? body.detail : `Encoding failed (${res.status})`));
     }
     return res.blob();
   }

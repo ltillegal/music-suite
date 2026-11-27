@@ -4,6 +4,13 @@
 
 > For using the app, read the [user manual](USER_MANUAL.md) instead (also in the app under **Help**). This guide is a technical reference and parts of it are out of date.
 
+## 0) Interface: languages, colours and windows
+
+- **Languages:** English, Spanish, German, French, Russian and Ukrainian, chosen with the **language and colours** button in every workspace header (saved in a cookie, so pages render in that language from the first frame). Backend messages, the AI engines' form fields, chart labels and the analyser's advice are translated in the browser; the user manual and first-project guide exist in every language (`docs/USER_MANUAL.<locale>.md`, `docs/FIRST_PROJECT.<locale>.md`), and Help shows the one for the interface language.
+- **Colour themes:** Midnight cyan, Amber studio, Violet night, Forest, Magenta and Light, from the same button.
+- **Floating panels:** every major panel can float in a window of its own (the box-with-arrow button in its title): the analyser's cards, Visual AI and charts; the editor's tracks and timeline, inspector, piano roll and on-screen piano; the AI Song Studio's sections and tabs; Synth Studio's panels; the Models & engines sections. Each window remembers its place (and its monitor, where the browser allows window placement). **Panels on this page** in the language and colours menu floats or docks each panel, docks them all, reopens the last floating layout, and can reopen it whenever the page opens (needs pop-ups allowed for Music Suite).
+- **Workspace and tab windows:** **Open in a new window** in the same menu opens any workspace as its own window; the window button beside the AI Song Studio's and Synth Studio's tabs opens that tab (`?tab=`). Two editor windows on the same session warn each other.
+
 ## 1) Session Control
 
 - `Upload`: stores source audio and metadata.
@@ -360,6 +367,12 @@ Open **AI Song Studio** from the workspace. It has three tabs.
 - *Google Lyria*: paste a Gemini API key under *Online services* to use Lyria 3.5 (full songs) or Lyria 3 Clip (30 seconds). Every Lyria song carries Google's inaudible SynthID watermark.
 - *Generators*: switch engines on or off. *ACE-Step 1.5 (your own Python server)* is for computers that already run ACE-Step's server (start it with `uv run acestep-api`). *YuE2* needs an NVIDIA GPU with about 24 GB and the `MUSIC_SUITE_YUE2_PYTHON` setting, and every song asks you to confirm its non-commercial licence.
 - *Online services*: paste your own ElevenLabs or fal.ai API key and press **Save key** to switch that service on. It then appears in the *Generator* list. Your style text and lyrics are sent to it and it bills your account. A clip's audio is uploaded only when you tick *Allow uploading this clip* in an AI edit. A cost estimate appears next to **Generate** before anything is sent. **Remove key** switches it off again. Keys are stored in your computer's keychain and are never shown again.
+
+### Lyrics helper and style improver
+
+- **Rhymes and syllables** under the lyrics: each sung line's syllable count and a rhyme letter per section, by rule, with no language model (exact in Spanish and, with its pronouncing dictionary, English; from spelling in Russian, Ukrainian, German and French). An amber count is much longer or shorter than the rest of its section.
+- **Alternatives** beside a line: the lyrics model proposes replacements, and each is checked for rhyme and syllables before it is listed; a tick means it passed. Needs Ollama.
+- **Improve the description** under the style description: a clearer, concrete English description for the music model, with **Undo**.
 
 ### Starting from a song
 

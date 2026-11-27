@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { viewOf } from "@/lib/windows";
 
 const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const BLACK = new Set([1, 3, 6, 8, 10]);
@@ -33,6 +35,7 @@ export function Piano({
   /** A lower strip without the hint line, for docking under other panels. */
   compact?: boolean;
 }) {
+  const { t } = useI18n();
   const hostRef = useRef<HTMLDivElement>(null);
   const [octaves, setOctaves] = useState(3);
   const [keyOctave, setKeyOctave] = useState(4);
@@ -48,7 +51,7 @@ export function Piano({
     if (!host) return;
     const fit = () => setOctaves(Math.max(1, Math.min(7, Math.floor(host.clientWidth / (7 * WHITE_MIN_PX)))));
     fit();
-    const observer = new ResizeObserver(fit);
+    const observer = new (viewOf(host).ResizeObserver)(fit);
     observer.observe(host);
     return () => observer.disconnect();
   }, []);
@@ -129,7 +132,7 @@ export function Piano({
   };
   const keyProps = (pitch: number) => ({
     type: "button" as const,
-    "aria-label": `Play ${noteName(pitch)}`,
+    "aria-label": t("synth.piano.play", { note: noteName(pitch) }),
     "aria-pressed": held.has(pitch),
     onPointerDown: (event: React.PointerEvent<HTMLButtonElement>) => {
       // Let the pointer slide on to other keys instead of staying captured by this one.
@@ -157,7 +160,7 @@ export function Piano({
       <div
         ref={hostRef}
         role="group"
-        aria-label="Piano"
+        aria-label={t("synth.piano.label")}
         className={cn(
           "relative touch-none select-none overflow-hidden rounded-xl bg-slate-800 p-1",
           compact ? "h-20 sm:h-24" : "h-28 sm:h-36 lg:h-44"
@@ -200,9 +203,9 @@ export function Piano({
       </div>
       {compact ? null : (
       <p className="mt-1.5 text-xs text-slate-400">
-        Click, touch and slide, or type <kbd className="rounded bg-slate-800 px-1">A</kbd>–<kbd className="rounded bg-slate-800 px-1">L</kbd>{" "}
-        (black keys on the row above). <kbd className="rounded bg-slate-800 px-1">Z</kbd> / <kbd className="rounded bg-slate-800 px-1">X</kbd>{" "}
-        move the typing octave: now {noteName(12 * (keyOctave + 1))}.
+        {t("synth.piano.hintClick")} <kbd className="rounded bg-slate-800 px-1">A</kbd>–<kbd className="rounded bg-slate-800 px-1">L</kbd>{" "}
+        {t("synth.piano.hintBlack")} <kbd className="rounded bg-slate-800 px-1">Z</kbd> / <kbd className="rounded bg-slate-800 px-1">X</kbd>{" "}
+        {t("synth.piano.hintOctave", { note: noteName(12 * (keyOctave + 1)) })}
       </p>
       )}
     </div>

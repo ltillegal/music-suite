@@ -1,3 +1,4 @@
+<a id="music-suite-user-manual"></a>
 # Music Suite user manual
 
 Music Suite is a music workstation that runs on your own computer. It analyses and masters finished songs, splits them into their instruments, turns audio into notes, edits and mixes multitrack sessions, generates songs with AI, designs synth sounds, and plays your music through a hardware keyboard such as a Roland GO:KEYS 3.
@@ -6,8 +7,10 @@ Everything runs locally. The only things that reach the internet are the online 
 
 > **Tip:** every workspace has small **?** buttons next to its settings. They open this manual at the section that explains them, in a new tab, so nothing you are working on is lost.
 
+<a id="getting-started"></a>
 ## Getting started
 
+<a id="the-workspaces"></a>
 ### The workspaces
 
 | Workspace | Address | What it is for |
@@ -22,24 +25,48 @@ Everything runs locally. The only things that reach the internet are the online 
 
 Songs move between workspaces with the buttons at the top of each page: for example **Studio Editor** on the analyser adds the selected song to a session, and **Send mix to the analyser and mastering** in the editor's Export menu sends a mix back.
 
+<a id="language-colours-and-extra-windows"></a>
 ### Language, colours and extra windows
 
 The **language and colours** button (a globe with the current language, beside the header buttons in every workspace) sets:
 
-- **Language:** English or Русский. The AI Song Studio, Models & engines and the editor's sessions page are translated so far; the rest of the app follows in later updates, and messages that come from the engines stay in English for now.
-- **Colour theme:** Midnight cyan (the original), Amber studio, Violet night, Forest or Magenta. Status colours keep their meaning in every theme: red for errors, amber for warnings, green for success.
+- **Language:** English, Español, Deutsch, Français, Русский or Українська. The whole interface is translated, including messages from the engines, the AI engines' own form fields and this manual (the Help page shows the manual in the chosen language, for example [USER_MANUAL.es.md](USER_MANUAL.es.md)). Some things stay as they are on purpose:
+  - names of models, plug-ins and presets;
+  - units musicians use in English (BPM, LUFS, dB);
+  - text that is sent to the music models, such as style prompts and the plan's section names, because the models read English;
+  - track names the editor creates and later recognises, such as "Sing-along".
+- **Colour theme:** Midnight cyan (the original), Amber studio, Violet night, Forest, Magenta or **Light (daytime)**. Status colours keep their meaning in every theme: red for errors, amber for warnings, green for success. In the light theme, the waveforms, piano roll, charts and visuals keep their dark drawing area.
 
 Both are saved in this browser.
 
-**Panels in their own windows (for a second monitor).** In the Studio Editor, the **pop-out** button (a box with an arrow) opens a panel in a separate window that you can drag to another monitor: the **inspector** (button in the header), the **piano roll, sheet music and spectral view** (button beside each panel's close button) and the **on-screen piano** (beside *Hide*). The panel keeps working exactly as before, and keys you press in its window (Space, undo, shortcuts) still reach the editor. Close the window, or press **Bring it back**, to return it. The first time, a message explains that each extra window uses more memory, processor and graphics power. Works in Chrome and Edge; allow pop-ups for Music Suite if the browser blocks the window.
+**Panels in their own windows (for a second monitor).** The **pop-out** button (a box with an arrow) opens a panel in a separate window that you can drag to another monitor.
 
+- **Studio Editor:**
+  - the **inspector** (button in the header);
+  - the **piano roll, sheet music and spectral view** (button beside each panel's close button);
+  - the **on-screen piano** (beside *Hide*).
+- **Analyser:**
+  - **Visual AI** (button beside its full-screen button);
+  - the **charts** (button on the tip line above them). The Chart Studio's group buttons and quick-jump links stay on the page and work on the charts in the other window.
+
+The panel keeps working exactly as before, and keys you press in its window (Space, undo, shortcuts) still reach the page. Close the window, or press **Bring it back**, to return it.
+
+Each window remembers where it was and how big it was, and opens there next time. With more than one monitor, the browser asks once whether Music Suite may place windows; allow it, and a panel opens on the other screen the first time and returns to the screen you left it on after that.
+
+The first time, a message explains that each extra window uses more memory, processor and graphics power. Works in Chrome and Edge; allow pop-ups for Music Suite if the browser blocks the window.
+
+**Every panel can float.** Besides those, every section of a workspace has the same small button in its title: the analyser's cards, the editor's **tracks and timeline**, the AI Song Studio's sections and tabs, Synth Studio's sound, controls and plug-in panels, and the Models & engines sections. Float the ones you want and arrange the screen your way. The **language and colours** button lists the panels of the page you are on under **Panels on this page**, with **Float** or **Dock** for each, **Dock every panel**, and **Reopen my floating panels** to bring back the layout you used last time. Tick **Reopen floating panels when their page opens** to have that happen by itself. It needs pop-ups allowed for Music Suite; otherwise the browser opens only one window per click.
+
+**Workspaces and tabs in their own windows.** The **language and colours** button also has **Open in a new window**: pick a workspace (Analyser, Studio Editor, AI Song Studio, Synth Studio, Models & engines, Song Geometry or Help) and it opens as a window of its own. In the AI Song Studio and Synth Studio, the window button beside the tabs opens the tab you are on in a new window, for example the **Album** tab on one monitor while you create songs on another. These windows also remember where you left them. Keep each session open in one editor window only: if the same session is open in two, both windows say so, because each would save over the other's edits.
+
+<a id="installing-windows"></a>
 ### Installing (Windows)
 
-1. Double-click **install.bat** in the Music Suite folder.
+1. Double-click **install.bat** in the Music Suite folder. Extract the downloaded ZIP first (right-click ▸ **Extract All...**): run from inside the ZIP, it stops and says so.
 2. It asks **Complete install? [y/N]**:
    - **Enter (Standard):** the app with everything it needs to run. About 10 GB free space is plenty.
    - **y (Complete):** also the local AI music engine and its models, the lyrics writer (Ollama), AI stem separation with all models, and the Surge XT synth. About 30 GB of downloads; have 45 GB free.
-3. It works through five steps: tools (Python, FFmpeg, Node.js, Git), the Python environment, the web app (the slowest step), optional parts, and a final check. Each tool comes from its official source and is checked before it is used.
+3. It works through five steps: tools (Python, FFmpeg, Node.js, Git), the Python environment, the web app (the slowest step), optional parts, and a final check. Each tool comes from its official source and is checked before it is used. You do not need Python on the computer: like ComfyUI's portable build, Music Suite keeps its own Python inside its folder, so nothing is installed on Windows and no administrator password is asked.
 4. When it says **Music Suite is installed!**, double-click **start.bat**.
 
 Anything left out can be added later from [Models and engines](#models-and-engines) and the AI Song Studio's Settings. See `docs/WINDOWS_INSTALL_GUIDE.md` for installer options.
@@ -54,6 +81,7 @@ If one of these fails, it says what to do. It also warns when the folder is insi
 
 **If installing fails,** the installer shows what went wrong. Run **install.bat** again: it keeps everything already done and carries on from there. If it stops in the same place twice, restart Windows and try once more. The full record is in `logs\install.log`.
 
+<a id="starting-and-stopping"></a>
 ### Starting and stopping
 
 - **start.bat** starts Music Suite and opens it in your browser (normally http://127.0.0.1:3000). If something it needs is missing, it installs it first. If Music Suite is already running, it just opens the browser.
@@ -64,6 +92,7 @@ If one of these fails, it says what to do. It also warns when the folder is insi
 
 Start options (run `start.ps1` from PowerShell): `-NoBrowser` (don't open the browser), `-ApiPort` and `-WebPort` (preferred ports, 8008 and 3000), `-StartupTimeoutSeconds` (default 300), `-NoInstall` (report what is missing instead of installing), `-StartComfyUI -ComfyUIPath <folder>` (also start ComfyUI for MusicGen).
 
+<a id="updating"></a>
 ### Updating
 
 On the analyser page, press **Configuration**:
@@ -74,6 +103,7 @@ On the analyser page, press **Configuration**:
 
 In-app updates need Music Suite to have been installed with Git (a clone), not from a ZIP.
 
+<a id="where-your-work-is-kept"></a>
 ### Where your work is kept
 
 | What | Where |
@@ -85,17 +115,23 @@ In-app updates need Music Suite to have been installed with Git (a clone), not f
 | Stem separation models | `data\models\audio-separator\` |
 | Logs (when something goes wrong) | `logs\` (`api.log`, `web.log`, `install.log`) and `data\generation\engine.log` |
 | Online service keys | Windows Credential Manager ("Music Suite") |
-| Surge XT | `%LOCALAPPDATA%\Programs\Common\VST3\` |
+| Surge XT | `data\plugins\VST3\` (Windows), or your own VST3 folder if you chose to share it with other music programs |
+| Music Suite's own Python, FFmpeg, Node.js and Git | `.tools\` |
+| Download caches (libraries, models) | `.cache\` and `data\cache\` |
 | Your synth sounds, plugin favourites, MIDI choices, mapper presets | Your browser's storage: not in the Music Suite folder, and not included in project files |
+
+**Everything stays in this folder.** Like ComfyUI Portable, Music Suite installs nothing on Windows: its Python, tools, downloads and caches all live in its folder, so deleting the folder removes it completely. The only things kept elsewhere are the online service keys (Windows Credential Manager), what your browser stores (above), Surge XT if you chose to share it with other music programs, and, with the complete install only, Ollama and the build tools for the AI music engine.
 
 To back up or move a session, use the editor's **Export → Whole project** (see [Saving, project files and undo](#saving-project-files-and-undo)).
 
+<a id="analyser-and-mastering"></a>
 ## Analyser and mastering
 
 The home page (`/`) analyses a finished song in depth, tells you what is wrong with it, and masters it for delivery. Nothing here changes your original file: every result is a new file.
 
 The page has a left column of controls (Session Control, Format Conversion, AI Mastering, Run History, Playback + Timeline) and a right column of results (status tiles, Overview Deck, File Intelligence, measurements, recommendations, markers and charts). On a narrow screen the left column comes first.
 
+<a id="the-workflow-in-short"></a>
 ### The workflow in short
 
 1. **Upload:** drag a file onto the drop zone or press **Browse File**. It uploads straight away and becomes the selected *run* (one song and everything made from it).
@@ -106,6 +142,7 @@ The page has a left column of controls (Session Control, Format Conversion, AI M
 
 > **Tip:** don't press **Upload** after dropping a file: the file is already uploaded, and Upload makes a second copy in Run History.
 
+<a id="header-buttons"></a>
 ### Header buttons
 
 | Button | What it does |
@@ -119,6 +156,7 @@ The page has a left column of controls (Session Control, Format Conversion, AI M
 | Clear History | Deletes every run that is not working right now, including failed ones. Asks first. |
 | Hard Reset | Cancels all queued work, restarts the background workers and deletes every run, including active ones. Use it only when something is stuck. Asks first. |
 
+<a id="session-control"></a>
 ### Session Control
 
 - **Drop zone / Browse File:** accepts WAV, FLAC, MP3, AAC, OGG, M4A and AIFF, up to 500 MB and 15 minutes by default (both can be changed, see [Settings reference](#settings-reference)).
@@ -128,6 +166,7 @@ The page has a left column of controls (Session Control, Format Conversion, AI M
 - **Status box:** the run's state (uploaded, queued, running, completed, failed), a progress bar, and a line saying what it is doing now (see [Analysis stages](#analysis-stages)). An amber warning appears if nothing has changed for five minutes; a long spectrogram step can take that long, and a truly stuck analysis is stopped automatically after ten.
 - **Exports: JSON, HTML, PDF:** the measurements as data, and a full report as a web page or PDF. They exist once analysis has finished. The PDF needs WeasyPrint; without it, only the HTML report is made.
 
+<a id="format-conversion"></a>
 ### Format Conversion
 
 Makes copies of the selected song in other formats.
@@ -140,10 +179,12 @@ Makes copies of the selected song in other formats.
 
 **Convert Selected** starts it. WAV copies are 16-bit; FLAC is lossless; OGG is Vorbis at quality 5. Conversion needs ffmpeg (installed with Music Suite). After analysis, the copies are made from the analysed 48 kHz version and are named `canonical.mp3`, `canonical.wav` and so on. Converting again replaces the previous copies.
 
+<a id="ai-mastering"></a>
 ### AI Mastering
 
 Masters the song for its destination: sets loudness, controls peaks, balances the tone and fixes problems the analysis found.
 
+<a id="suggested-from-analysis"></a>
 #### Suggested From Analysis
 
 After analysis, this box suggests a mode, preset, loudness and peak ceiling, with the reasons. **Apply Suggested Settings** copies them into the form below (it leaves Input Gain, Bass Mono, Stereo Width and Reference song alone).
@@ -153,6 +194,7 @@ How it decides:
 - **V1** for dense, lossy, clipped or peak-sensitive sources; **V2** for cleaner songs with several problems; **V3** for stronger correction on material that can take it.
 - **film** for very dynamic or quiet material, **voice** for speech-heavy material, **club** for bass-heavy material with room to push, otherwise **streaming**.
 
+<a id="mastering-settings"></a>
 #### Mastering settings
 
 | Setting | Choices / range | Default | What it does |
@@ -183,6 +225,7 @@ What each preset aims for (when the boxes are cleared):
 
 Platform profiles: YouTube, Spotify, Instagram and TikTok −14 LUFS / −1 dBTP; Apple Music −16 / −1; Broadcast EBU −23 / −1; Podcast Voice −16 / −1.5.
 
+<a id="backends"></a>
 #### Backends
 
 | Backend | What it adds | Needs |
@@ -199,6 +242,7 @@ On a slower computer the extra backends can take several minutes per song, where
 
 Only one mastering pass runs per song at a time. Pressing **Run Mastering** again while one is under way says so and changes nothing; wait for it to finish, then run it with the new settings.
 
+<a id="running-and-reading-the-results"></a>
 #### Running and reading the results
 
 **Run Mastering** starts it; mastering again replaces that song's previous masters. The progress box shows the stage, the best output, the backend used, and a fingerprint (SHA-256) of the result.
@@ -218,6 +262,7 @@ Only one mastering pass runs per song at a time. Pressing **Run Mastering** agai
 | V2 | `master_v2_variant_1…N.wav` and `master_v2_best.wav` |
 | V3 | `master_v3.wav` plus the four band files `stem_bass`, `stem_vocals`, `stem_drums`, `stem_other` |
 
+<a id="outputs-ready-to-save"></a>
 ### Outputs Ready To Save
 
 When a conversion or mastering job started from this page finishes, a dialog lists the new files (for mastering, the best master only; the others are in the Mastered Outputs table).
@@ -229,10 +274,12 @@ When a conversion or mastering job started from this page finishes, a dialog lis
 
 The list is lost if you reload the page; the files themselves stay in the tables.
 
+<a id="run-history"></a>
 ### Run History
 
 Every uploaded song, newest first (up to 50). Click a row to select it. Switching songs stops playback and resets the EQ, speed and loop; mastering settings are kept.
 
+<a id="playback-and-the-timeline"></a>
 ### Playback and the timeline
 
 The player plays the **original upload** (there is no built-in A/B with the masters; download them, or open both in the Studio Editor).
@@ -245,6 +292,7 @@ The player plays the **original upload** (there is no built-in A/B with the mast
   - **Transport:** **Play/Pause**, **−5s / +5s**, **Selection Start**, **Loop Selection**, **Speed** (0.75–1.5×), **Set Start / Set End** at the playhead, and **Reset Range** (full song, loop off).
   - **Keyboard:** Space plays and pauses; the left and right arrows jump 5 s.
 
+<a id="delivery-readiness"></a>
 ### Delivery Readiness
 
 | Tile | Reads |
@@ -256,10 +304,12 @@ The player plays the **original upload** (there is no built-in A/B with the mast
 
 Before analysis every value is zero, so these tiles read Hot, Risk and Dense until the song has been analysed.
 
+<a id="manual-eq"></a>
 ### Manual EQ
 
 A 20-band EQ (20 Hz to 16 kHz, ±12 dB each) for listening through the page's player. Tick **Enable EQ** first; the sliders do nothing while it is off. **Reset EQ** flattens it. **Export EQ WAV** renders the whole song through the EQ in your browser and saves a 16-bit WAV named `<song>_eq.wav`. With the EQ off, the export is an unprocessed copy. The EQ does not affect mastering.
 
+<a id="file-intelligence"></a>
 ### File Intelligence
 
 | Tile | What it tells you |
@@ -273,6 +323,7 @@ A 20-band EQ (20 Hz to 16 kHz, ±12 dB each) for listening through the page's pl
 
 **Compression Assessment** sums this up in a sentence. **Why Some Values Are N/A** explains any blank tile; most often the song has no quiet gaps to measure noise from, or it was analysed by an older version (press Analyze again). **Metadata Tags** lists the file's tags; **Show Raw Metadata JSON** shows all of them. **Guide: What Everything Means** is a quick reference on the page itself.
 
+<a id="measurements-recommendations-and-markers"></a>
 ### Measurements, recommendations and markers
 
 | Measurement | What it means | Good values |
@@ -299,6 +350,7 @@ A 20-band EQ (20 Hz to 16 kHz, ±12 dB each) for listening through the page's pl
 
 The **Markers Near Playhead / Selection** table lists them, nearest the playhead first; click a row to jump there.
 
+<a id="charts"></a>
 ### Charts
 
 **Chart Studio** filters the charts: **All Views**, **Mix Review**, **Stereo Focus** or **Spectral**. **Quick Jump** scrolls to a chart. Every chart can be zoomed with the mouse wheel, reset with a double-click, and saved as an image with the camera icon. Right-click and drag on a time chart to move the selected window. The time charts follow the Selected Segment.
@@ -318,14 +370,17 @@ The **Markers Near Playhead / Selection** table lists them, nearest the playhead
 
 Mono files have no stereo charts.
 
+<a id="analysis-stages"></a>
 ### Analysis stages
 
 The status line walks through: uploaded, queued, initialize, reading metadata, decoding, scanning, measuring loudness and dynamics, detecting markers, making spectrograms, building charts, making the report (HTML, then PDF), and completed. If nothing changes for 10 minutes, the analysis is stopped with a "Loop guard triggered" message; press **Hard Reset** if a run still looks stuck after that.
 
+<a id="studio-editor"></a>
 ## Studio Editor
 
 The Studio Editor is a multitrack audio and MIDI editor. Each piece of work is a *session* (also called a project) that saves itself as you go.
 
+<a id="sessions"></a>
 ### Sessions
 
 Opening `/editor` shows your sessions:
@@ -339,6 +394,7 @@ When a song is sent here from another workspace, the page asks **Where should "n
 - **Split it into stems when it opens**, and **how far**: as many as this computer can, 2, 4 or 6 stems, or Everything (12 stems with drum pieces and lead/backing vocals, which needs AI stem separation).
 - **New session "name"**, or **Add here** on an existing session. The song is added on a new track at 0:00; nothing already there is replaced.
 
+<a id="the-editor-screen"></a>
 ### The editor screen
 
 From left to right along the top:
@@ -372,6 +428,7 @@ Under the timeline, the status line shows what is being worked on, a notice (wit
 
 The right-hand panel is the [inspector](#editor-tools-the-inspector).
 
+<a id="the-timeline"></a>
 ### The timeline
 
 **Tools:**
@@ -406,6 +463,7 @@ The right-hand panel is the [inspector](#editor-tools-the-inspector).
 
 **Markers and sections:** K adds a marker; [ and ] jump to the previous and next one. Shift+R turns the highlighted range into a section. Name, repeat and cut sections in the inspector.
 
+<a id="tracks"></a>
 ### Tracks
 
 **+** above the track headers (or Shift+T) adds a track. Each track header has:
@@ -422,6 +480,7 @@ The right-hand panel is the [inspector](#editor-tools-the-inspector).
 
 Click a header to select the track. Its EQ, width, output, sends, colour, effects and instrument are in the [inspector](#track-effects-and-buses).
 
+<a id="recording"></a>
 ### Recording
 
 **Audio** (the microphone button):
@@ -438,6 +497,7 @@ Click a header to select the track. Its EQ, width, output, sends, colour, effect
 
 **The on-screen piano:** plays the selected instrument track with the mouse or touch, just like a MIDI keyboard.
 
+<a id="piano-roll-sheet-music-and-spectral-view"></a>
 ### Piano roll, sheet music and spectral view
 
 Only one of these shows at a time, under the timeline.
@@ -458,12 +518,14 @@ Only one of these shows at a time, under the timeline.
 - **Attenuate** turns that box down by the chosen amount (−6 to −96 dB, default −24).
 - **Heal** replaces it with a blend of the sound just before and after.
 
+<a id="importing"></a>
 ### Importing
 
 **Import** accepts WAV, FLAC, MP3, AAC, OGG, M4A, AIFF and MIDI (.mid) files, several at once. Each file goes on a new track at 0:00. To choose the position or the track, drag files onto the timeline instead.
 
 MIDI files are read in your browser. Each part becomes an instrument track set to the instrument the file asks for, and channel 10 becomes a drum track. The session's tempo is not changed by importing a MIDI file.
 
+<a id="exporting"></a>
 ### Exporting
 
 All audio is rendered at 48 kHz stereo through the full mix, including effects and their tails.
@@ -480,6 +542,7 @@ All audio is rendered at 48 kHz stereo through the full mix, including effects a
 | Send mix to the analyser and mastering → | Analyses the mix on the [analyser page](#analyser-and-mastering), ready to master. |
 | Start an AI song from the mix → | Opens the AI Song Studio starting from the mix. |
 
+<a id="saving-project-files-and-undo"></a>
 ### Saving, project files and undo
 
 - **Sessions save themselves** within a second of every change. Nothing needs saving by hand.
@@ -487,6 +550,7 @@ All audio is rendered at 48 kHz stereo through the full mix, including effects a
 - Zoom, scroll position, the current tool and the selection are not saved.
 - **Project files** (Export → Whole project) hold the session and all of its audio. Use them for backups and for moving a session to another computer. Synth sounds and plugin favourites kept in your browser are not included.
 
+<a id="keyboard-shortcuts"></a>
 ### Keyboard shortcuts
 
 | Keys | Action |
@@ -517,6 +581,7 @@ All audio is rendered at 48 kHz stereo through the full mix, including effects a
 
 Shortcuts are ignored while you are typing in a box.
 
+<a id="editor-tools-the-inspector"></a>
 ## Editor tools: the inspector
 
 The inspector is the panel on the right of the Studio Editor. What it shows depends on what is selected:
@@ -527,6 +592,7 @@ The inspector is the panel on the right of the Studio Editor. What it shows depe
 | A MIDI (notes) clip | Clip, MIDI clip, Instrument, Plugin instrument, then the track and its effects |
 | Nothing | Project settings, Write an arrangement, Create a song, Phase scope, Buses, Sections, Markers and Media |
 
+<a id="how-processing-works"></a>
 ### How processing works
 
 - **Results replace the clip's sound.** A tool such as Reduce noise renders a new file and the selected clip switches to play it. The clip's name gets a note of what was done, for example "Vocal (denoised, declicked)". The original file is kept under **Media**, and **Undo** (Ctrl+Z) brings it back.
@@ -536,6 +602,7 @@ The inspector is the panel on the right of the Studio Editor. What it shows depe
 - **Sliders:** double-click any slider to put it back to its default. Hover to see its value.
 - If Music Suite is restarted while a job runs, the job fails with "The job was interrupted before it finished. Please run it again."
 
+<a id="clip"></a>
 ### Clip
 
 | Control | Range / choices | Default | What it does |
@@ -550,6 +617,7 @@ The inspector is the panel on the right of the Studio Editor. What it shows depe
 | Duplicate (Ctrl+D) | | | Places a copy straight after it. |
 | Delete clip (Del) | | | Removes it from the timeline (Undo brings it back). |
 
+<a id="midi-clip"></a>
 ### MIDI clip
 
 Shown for a clip of notes. It plays the track's instrument.
@@ -560,6 +628,7 @@ Shown for a clip of notes. It plays the track's instrument.
 - **Quantise notes to 1/16:** snaps every note's start to the nearest sixteenth note at the project tempo.
 - **Export as a .mid file:** saves just this clip's notes.
 
+<a id="separate-stems"></a>
 ### Separate stems
 
 Splits a recording into its instruments. Each one lands on its own track under the original, lined up with it; the original clip is muted, not removed.
@@ -582,6 +651,7 @@ To generate a replacement performance, select an extracted stem and open **AI ed
 
 > **Tip:** for turning a song into notes, 4 stems is better than 6. The six-stem split guesses which of guitar, piano and "other" each sound belongs to and changes its mind from moment to moment, which scatters one instrument across three tracks.
 
+<a id="repair"></a>
 ### Repair
 
 | Control | Range | Default | What it does |
@@ -593,6 +663,7 @@ To generate a replacement performance, select an extracted stem and open **AI ed
 
 The same Loudness value is also the target for AI match's Loudness option.
 
+<a id="takes"></a>
 ### Takes
 
 Shown on clips made by loop recording.
@@ -600,6 +671,7 @@ Shown on clips made by loop recording.
 - **Use this take:** makes this take the one you hear over its whole passage and mutes the others there.
 - **Use this take in the highlighted range:** the same, but only inside the Range selection, so you can build one performance from the best bits of several.
 
+<a id="warp"></a>
 ### Warp
 
 Moves moments in a recording in time without changing its pitch. Shown for one clip that is not reversed.
@@ -613,6 +685,7 @@ Each stretch must stay between a quarter and four times its original length.
 - **Quantise beats to N BPM:** finds the played beats and pulls them onto the project's tempo grid. It works when the played tempo is within half to double the project tempo.
 - **Stretch to the length of the highlighted range:** makes the clip exactly as long as the Range selection.
 
+<a id="restore"></a>
 ### Restore
 
 Fixes for damaged recordings. **Amount** (10–100%, default 50%) sets how hard DeClick and DeReverb work.
@@ -626,6 +699,7 @@ Fixes for damaged recordings. **Amount** (10–100%, default 50%) sets how hard 
 
 For a single cough or chair creak, open the spectral view (W) at the bottom and draw a box around it instead (see [Studio Editor](#studio-editor)).
 
+<a id="pitch-and-time"></a>
 ### Pitch and time
 
 | Control | Range | Default | What it does |
@@ -635,6 +709,7 @@ For a single cough or chair creak, open the spectral view (W) at the bottom and 
 
 Quality depends on the engine shown at the top: Rubber Band (installed with the editor extras) is best; the built-in fallback works but is rougher.
 
+<a id="ai-match"></a>
 ### AI match
 
 Fits a clip to the project, or to another clip, in tempo, key and loudness.
@@ -645,6 +720,7 @@ Fits a clip to the project, or to another clip, in tempo, key and loudness.
 - **Tempo / Key / Loudness** (Tempo and Key on by default): what to match. Tempo uses the closest of normal, half or double time and must stay within half to double. Key moves by the smallest step, at most six semitones; a relative key (A minor to C major) needs no change.
 - **Match clip:** renders the matched version and lines its first downbeat up with the nearest bar.
 
+<a id="plugins"></a>
 ### Plugins
 
 Shown when plugin hosting is installed and VST3 effect plugins were found on this computer.
@@ -653,6 +729,7 @@ Shown when plugin hosting is installed and VST3 effect plugins were found on thi
 2. **Audition 8 s from the playhead** to hear it without changing anything.
 3. **Render through plugin** to apply it. The result is cut to the clip's length, so a reverb tail past the end is lost.
 
+<a id="compose"></a>
 ### Compose
 
 | Button | What it does |
@@ -661,6 +738,7 @@ Shown when plugin hosting is installed and VST3 effect plugins were found on thi
 | Whole song to MIDI (every instrument) | Splits a full song and writes one notes track per instrument. See [Turning audio into notes](#turning-audio-into-notes). |
 | Detect song sections | Finds where the song changes and marks the sections on the ruler (Section A, B…), giving repeated parts the same letter. Needs at least 8 s of sound. |
 
+<a id="ai-edit"></a>
 ### AI edit
 
 Changes a clip with AI, on this computer (ACE-Step 1.5) or with an online service you have set up in the [AI Song Studio](#ai-song-studio). Every change can be undone.
@@ -679,10 +757,12 @@ Changes a clip with AI, on this computer (ACE-Step 1.5) or with an online servic
 - **Versions (1–4):** the first version replaces or adds the clip; the others go on muted tracks so you can compare.
 - Online services ask you to allow uploading the clip and show the cost before running.
 
+<a id="generate-a-part"></a>
 ### Generate a part
 
 Generates a new instrumental part from a text prompt (for example "warm upright bass, walking line") with MusicGen through ComfyUI on this computer, at the project tempo and key. Length 4–60 s, default 15 s. It needs ComfyUI running with the Sonic Holodeck nodes; the section says so when it is not.
 
+<a id="favourites"></a>
 ### Favourites
 
 Saves a chain of processing steps so you can run them again with one click.
@@ -692,6 +772,7 @@ Saves a chain of processing steps so you can run them again with one click.
 
 Favourites are kept in this browser. Separation, warping, matching, transcription and AI tools cannot be saved as steps.
 
+<a id="project"></a>
 ### Project
 
 Shown when nothing is selected.
@@ -708,6 +789,7 @@ Shown when nothing is selected.
 
 **Add an instrument (MIDI) track** adds a four-bar notes clip at the playhead and opens the piano roll.
 
+<a id="write-an-arrangement"></a>
 ### Write an arrangement
 
 Writes drums, bass, chords, a melody and more as notes, on this computer. Shown when the arranger is switched on.
@@ -725,6 +807,7 @@ Writes drums, bass, chords, a melody and more as notes, on this computer. Shown 
 
 **Write the parts** puts one instrument track per part at the playhead and marks the sections on the ruler. An empty project also takes the arrangement's tempo, key and time signature.
 
+<a id="track-effects-and-buses"></a>
 ### Track, effects and buses
 
 **Track** (any selected track):
@@ -766,6 +849,7 @@ The vocoder and synth voice work best on a solo voice; on a full mix they follow
 
 **In-browser plugin:** community Web Audio plugins from webaudiomodules.com. It is the one part of the app that loads code from the internet, so it stays off until you press **Allow internet plugins in this browser**.
 
+<a id="sections-markers-and-media"></a>
 ### Sections, markers and media
 
 Shown when nothing is selected.
@@ -775,16 +859,19 @@ Shown when nothing is selected.
 - **Media:** every file and rendered take in the project, including originals replaced by processing. Click one to add it on a new track at the playhead.
 - **Phase scope:** shows whether left and right are in phase. Green is fine; red means parts cancel out when played in mono.
 
+<a id="instruments-and-sounds"></a>
 ## Instruments and sounds
 
 Every instrument (MIDI) track plays its notes through an instrument. Choose it in the inspector with a notes clip selected.
 
+<a id="instrument-types"></a>
 ### Instrument types
 
 - **Type:** *Synth (pitched notes)* or *Drum kit*. The built-in drum kit plays kick (note 36 and below), snare (37, 38, 40), clap (39), closed hi-hat (42, 44), open hi-hat (46), cymbal (49 and 51 up) and toms for the notes in between. Note length is ignored for drums.
 - **Sound of:** *This track's own synth sound*, or any of the 128 General MIDI instruments (pianos, organs, guitars, basses, strings, brass, pads and so on). The General MIDI choice is also written into exported MIDI files.
 - **SoundFont (.sf2):** load one with **Load a SoundFont** to hear the General MIDI instruments with real samples. Without one, the built-in synth plays its nearest sound. A SoundFont applies to every track, stays in this browser only, and is never uploaded. **Remove** forgets it.
 
+<a id="the-built-in-synth"></a>
 ### The built-in synth
 
 Quick controls in the inspector:
@@ -798,6 +885,7 @@ Quick controls in the inspector:
 
 **Edit sound…** opens the full sound editor, which is the same as the [Synth Studio](#synth-studio): three oscillators, filter, noise and FM, two envelopes, two LFOs and up to eight modulation routes. **Save as my sound** keeps a sound for every track and for the Synth Studio; **Export** and **Import** move sounds between computers as `.mssound` files.
 
+<a id="plugin-instruments-vst3"></a>
 ### Plugin instruments (VST3)
 
 Plugin instruments such as **Surge XT** (free, installed from [Models and engines](#models-and-engines)) run on this computer, outside the browser.
@@ -812,10 +900,12 @@ Plugin instruments such as **Surge XT** (free, installed from [Models and engine
 
 Notes reach a plugin instrument 15–25 ms after you play; Bluetooth headphones add their own delay.
 
+<a id="turning-audio-into-notes"></a>
 ## Turning audio into notes
 
 Music Suite can write down the notes of a recording as MIDI: one clip, or a whole song with one track per instrument.
 
+<a id="ways-to-do-it"></a>
 ### Ways to do it
 
 | Where | Use it for |
@@ -824,6 +914,7 @@ Music Suite can write down the notes of a recording as MIDI: one clip, or a whol
 | Inspector → Compose → **Whole song to MIDI (every instrument)** | A full mix: one notes track per instrument. |
 | The [Keyboard wizard](#keyboard-wizard), Song step | The same, with the best settings chosen for you. |
 
+<a id="what-kind-of-recording-it-is"></a>
 ### What kind of recording it is
 
 The wizard asks what the recording is. This matters more than any other setting:
@@ -837,6 +928,7 @@ The wizard asks what the recording is. This matters more than any other setting:
 
 Splitting a recording of one instrument tears it into pieces: a solo piano split six ways came back with 6% of its notes. Telling the app what the recording is avoids that.
 
+<a id="which-engines-write-the-notes"></a>
 ### Which engines write the notes
 
 | Part | Engine | Needs |
@@ -849,6 +941,7 @@ Splitting a recording of one instrument tears it into pieces: a solo piano split
 
 **Method** (shown when MuScriptor is installed): *Best available* (the stems method, which measured better), *MuScriptor: one model hears the whole mix*, or *Stems: split first, then a model per instrument*.
 
+<a id="how-the-notes-are-cleaned-up"></a>
 ### How the notes are cleaned up
 
 - **Every note is checked against the audio.** A note that cannot be heard in the recording at that moment is dropped. This removes most "strange unrelated notes".
@@ -859,6 +952,7 @@ Splitting a recording of one instrument tears it into pieces: a solo piano split
 - Note starts are lined up with the song's own beat (sixteenths or triplets).
 - The notes keep the length they are held in the recording.
 
+<a id="how-accurate-it-is"></a>
 ### How accurate it is
 
 Measured on a 47-note piano piece with known notes:
@@ -873,10 +967,12 @@ Clear parts (a lead vocal, a bass line, a solo instrument) come out close. Dense
 
 > **Tip:** for the best results, install both **AI stem separation** and **AI note transcription** from [Models and engines](#models-and-engines).
 
+<a id="your-hardware-keyboard"></a>
 ## Your hardware keyboard
 
 A hardware keyboard connected by USB (for example a Roland GO:KEYS 3) can play your music in its own voices, and its sound can be recorded straight back into a session. Everything is in the editor's **Keyboard** button.
 
+<a id="connecting-the-keyboard"></a>
 ### Connecting the keyboard
 
 1. Connect the keyboard to the computer with a USB cable and switch it on. Set its volume about three-quarters up.
@@ -887,6 +983,7 @@ A hardware keyboard connected by USB (for example a Roland GO:KEYS 3) can play y
 
 A GO:KEYS 3 appears as "Roland Digital Piano" for MIDI and "Line (Roland Digital Piano)" for audio.
 
+<a id="play-my-music-on-the-keyboard"></a>
 ### Play my music on the keyboard
 
 **What the keyboard plays when the song plays:**
@@ -899,6 +996,7 @@ The chosen notes go to the keyboard during normal playback, and their sound on t
 
 **Notes at once:** *All*, or a limit of 1, 2, 3, 4 or 6. Some keyboard voices, especially character voices, turn many simultaneous notes into a blur; a limit keeps the louder notes and drops the rest.
 
+<a id="choosing-the-keyboards-voice"></a>
 ### Choosing the keyboard's voice
 
 **Keyboard voice** picks any sound the keyboard has:
@@ -920,6 +1018,7 @@ GO:KEYS 3 banks:
 
 The keyboard plays one voice at a time, so a song with several parts is recorded one part after another.
 
+<a id="recording-a-part-through-the-keyboard"></a>
 ### Recording a part through the keyboard
 
 1. **Audio in:** **Find inputs**, then choose the keyboard's own output (for a GO:KEYS 3, "Line (Roland Digital Piano)"). **Test in** shows whether sound is arriving.
@@ -933,20 +1032,24 @@ The keyboard plays one voice at a time, so a song with several parts is recorded
 - *Silent:* the take is not saved, and you are told the keyboard stopped answering (see [Troubleshooting](#troubleshooting)).
 - *Distorted:* the take is still saved and you are told. In the wizard it is recorded again by itself, each time about 6 dB quieter, up to three tries; only if even a low MIDI volume distorts are you asked to turn the keyboard's own volume knob down.
 
+<a id="keyboard-wizard"></a>
 ## Keyboard wizard
 
 The **Wizard** button in the editor takes a song all the way through the keyboard, step by step: either adding a new voice to it, or re-voicing its parts. Each step says what it is doing while it does it.
 
+<a id="step-1-song"></a>
 ### Step 1: Song
 
 Say what the recording is: *A full song, or not sure*, *Just a piano*, *One other instrument*, or *One voice or melody line* (see [Turning audio into notes](#turning-audio-into-notes) for what each does). Then **Load a song file…**, or **Use this** for a song already on the timeline. The wizard splits it if needed and writes down its notes; a three-minute song takes a few minutes.
 
 If the session already has notes tracks, **Skip** goes straight on.
 
+<a id="step-2-keyboard"></a>
 ### Step 2: Keyboard
 
 **Check the keyboard** finds the keyboard's MIDI, finds its audio input, plays a test note and times how long the sound takes to come back. It lists all three when it works. Allow MIDI and the microphone when the browser asks: the keyboard's sound arrives as an audio input.
 
+<a id="step-3-voices"></a>
 ### Step 3: Voices
 
 Choose what to do:
@@ -979,6 +1082,7 @@ For each part:
 
 Some Minion voices say a short word that ends by itself (about 0.3 to 0.8 seconds, measured) however long the key is held. A longer *Shortest note* does not lengthen such a word; it gives it room to finish before the next note.
 
+<a id="step-4-record"></a>
 ### Step 4: Record
 
 **Record one part at a time** (recommended). For each part:
@@ -991,16 +1095,19 @@ Some Minion voices say a short word that ends by itself (about 0.3 to 0.8 second
 
 Before each take the keyboard's level is set automatically (see [Your hardware keyboard](#your-hardware-keyboard)). If a take comes back distorted, the wizard records that part again by itself, about 6 dB quieter each time, up to three tries, and only then asks you to turn the keyboard's own volume knob down. If a take comes back silent the wizard stops instead of saving empty tracks.
 
+<a id="step-5-done"></a>
 ### Step 5: Done
 
 Each kept take is on its own track named after its part, and the notes tracks are muted. In *Add a voice* mode nothing else is changed; in *Re-voice* mode the replaced parts are muted if you ticked that option. **Play the result** plays the whole song from the start. Adjust the faders and export as usual (Export → Mixdown, or Song from chosen tracks).
 
+<a id="ai-song-studio"></a>
 ## AI Song Studio
 
 Under **Settings → Local model downloads**, select a runtime, review its requirements and confirm the download. After installation, select the engine in the generation form. HeartMuLa and MiniMax Music 3 accept lyrics. DiffRhythm uses timestamped lyrics and offers 95- and 285-second renders. Magenta RealTime 2 renders instrumentals offline. Stable Audio 3 also works from an editor clip. Select the clip and open **AI edit** to restyle it, regenerate a highlighted region, or continue past the end of the source. Each runtime has its own dependencies. Some weights download on first generation.
 
 Generates songs with AI: on this computer with ACE-Step 1.5, or with an online service you switch on with your own key. Results open in the Studio Editor. The page has four tabs: **Create**, **Album**, **History** and **Settings**.
 
+<a id="generators"></a>
 ### Generators
 
 | Generator | Where it runs | Needs | Notes |
@@ -1015,6 +1122,7 @@ Generates songs with AI: on this computer with ACE-Step 1.5, or with an online s
 
 Suno is listed but not available: it has no public API, and unofficial connectors break its terms. The arranger (which writes notes, not audio) is used from the Studio Editor's inspector.
 
+<a id="create"></a>
 ### Create
 
 1. **Install local engine** if the card asks (first time only; about 5.3 GB and a few minutes).
@@ -1061,6 +1169,12 @@ Extract, Add a part and Build need the editing model (2.4 GB, from Settings). Wi
 
 **Rewrite** (under the lyrics) changes the lyrics on request, for example "add a bridge" or "translate to Spanish". It needs Ollama.
 
+**Rhymes and syllables** (under the lyrics) shows every sung line with its syllable count and a rhyme letter: lines with the same letter rhyme, so you can see the scheme (AABB, ABAB…) at a glance. A count in amber means the line is much longer or shorter than the rest of its section and will not sit on the same melody. It works without Ollama and updates as you type. Rhymes are exact in Spanish and, once its pronouncing dictionary has downloaded (3.6 MB, the first time), in English; in Russian, Ukrainian, German and French they are judged from spelling, so treat them as a guide.
+
+**Alternatives** (beside a line) suggests other versions of that line that keep its rhyme and its length. Choose what it should rhyme with (its partner line, another line or no rhyme), optionally say what to change, and press **Suggest**. Every suggestion is checked by the same rules: a tick means it really rhymes and has the right number of syllables. **Use** puts it in place of the line. It needs Ollama. Small local models rhyme well in English and Spanish and less reliably in Russian and Ukrainian, which is why each suggestion is checked rather than trusted.
+
+**Improve the description** (under the style description) rewrites it so it is clearer and more concrete for the music model: genre, mood, tempo feel, instruments, voice and production, keeping your idea. It writes in English, which the music models understand best. **Undo** brings back what you had.
+
 The bar at the bottom shows how long it will take (local) or what it will cost (online). While generating it shows each stage and a **Cancel** button. Online services cannot be cancelled once the request is sent.
 
 **Results:** each version has a player and its tempo, key, loudness and seed. The buttons are:
@@ -1083,6 +1197,7 @@ Each version goes on its own track; extra versions are muted so you can compare 
 
 **Draft a plan (free)** makes one for you. The first section's styles set the genre. With a plan, Length and Lyrics are not used.
 
+<a id="album"></a>
 ### Album
 
 Makes up to 20 songs in the background, one after another. They keep going after a restart.
@@ -1097,10 +1212,12 @@ Each album becomes its own session. When memory is short or the generator is bus
 
 > **Tip:** use ACE-Step or an online service for albums. MusicGen and YuE2 take different settings, and an album made with them is likely to fail.
 
+<a id="history"></a>
 ### History
 
 Every song you made, with the settings that made it. **Use these settings** fills the form again; **Open project** opens it in the editor; the trash icon removes the entry (the audio stays in its session).
 
+<a id="settings"></a>
 ### Settings
 
 | Card | Settings |
@@ -1112,10 +1229,12 @@ Every song you made, with the settings that made it. **Use these settings** fill
 | Online services | Paste your API key and **Save key** to switch a service on; **Remove key** switches it off. Keys are kept in Windows Credential Manager. Each has a **Terms and pricing** link. |
 | Generators | Switch each generator on or off. |
 
+<a id="synth-studio"></a>
 ## Synth Studio
 
 Design synth sounds and play them; sounds saved here appear as "My sounds" on instrument tracks in the Studio Editor. The **MIDI** button at the top connects a MIDI keyboard, which plays whichever tab is open (velocity, sustain pedal and pitch bend work).
 
+<a id="music-suite-synth"></a>
 ### Music Suite synth
 
 The built-in synth, running in your browser.
@@ -1133,6 +1252,7 @@ The built-in synth, running in your browser.
 | LFOs 1 and 2 | **Shape:** sine, triangle, saw, square, random steps. **Sync:** free (with **Rate** 0.05–20 Hz) or tied to the tempo (1 bar to 1/16, triplets). Slow regular movement for vibrato, wobble and sweeps. |
 | Modulation | Up to 8 routes from a **source** (LFO 1, LFO 2, Envelope 2, Velocity, Note) to a **destination** (pitch, an oscillator's pitch or level, noise, FM amount, cutoff, resonance, volume, pan) with an **Amount** of ±100%. At full amount, pitch moves an octave and cutoff four octaves. |
 
+<a id="surge-xt-and-plugins"></a>
 ### Surge XT and plugins
 
 Plays VST3 instrument plugins installed on this computer, such as Surge XT (install it free from [Models and engines](#models-and-engines)).
@@ -1147,6 +1267,7 @@ Plays VST3 instrument plugins installed on this computer, such as Surge XT (inst
 
 To use a sound in a song, star it here, then choose it on an instrument track in the editor.
 
+<a id="song-geometry-mapper"></a>
 ## Song Geometry Mapper
 
 Turns a song into a moving 3D cloud: every short slice of sound becomes a point placed by its character (brightness, spread, energy and so on), linked to its neighbours in time and in sound. Use it to see a song's structure, or to make visuals and video.
@@ -1172,6 +1293,7 @@ Open it from the analyser's **Geometry Mapper** button (the selected song loads 
 - **Start Video / Stop Video:** a WebM recording.
 - **Copy MP4 Command:** an ffmpeg command that converts that recording to MP4.
 
+<a id="models-and-engines"></a>
 ## Models and engines
 
 Optional engines and AI models. Everything here runs on this computer, and installing something never changes what is already installed.
@@ -1187,12 +1309,13 @@ Optional engines and AI models. Everything here runs on this computer, and insta
 | Editing model | Extract an instrument, add a part, build a song around a part. | 2.4 GB |
 | High-quality (XL) model | Better songs, a little slower. | 4.9 GB |
 | Lyrics writer | Lyrics and style descriptions with Ollama. Needs Ollama running. | About 8 GB |
-| Surge XT | A free hybrid synthesizer with thousands of factory sounds, for instrument tracks and the Synth Studio. | About 300 MB download |
+| Surge XT | A free hybrid synthesizer with thousands of factory sounds, for instrument tracks and the Synth Studio. On Windows it stays inside Music Suite's folder, where your other music programs do not see it, unless you tick **Also make it available to my other music programs (DAW)**. | About 300 MB download |
 
 When a pack finishes, reload any open editor pages to use it. **Install log** shows what the installer did if something fails.
 
-From a terminal: `.venv\Scripts\python -m audioqi.addons install stems` and `python -m audioqi.editor.instruments install surge-xt`.
+From a terminal: `.venv\Scripts\python -m audioqi.addons install stems` and `python -m audioqi.editor.instruments install surge-xt`. Add `--for-daws` to put Surge XT in your VST3 folder instead.
 
+<a id="settings-reference"></a>
 ## Settings reference
 
 Most settings are in the app itself and are explained where they appear in this manual:
@@ -1207,6 +1330,7 @@ Most settings are in the app itself and are explained where they appear in this 
 | AI engines, memory, loudness of new songs, online keys | AI Song Studio → Settings | [AI Song Studio](#settings) |
 | Optional models | Models & engines | [Models and engines](#models-and-engines) |
 
+<a id="advanced-environment-variables"></a>
 ### Advanced: environment variables
 
 For things the app does not offer as a setting, set a Windows environment variable before running start.bat (System Properties → Environment Variables, then restart Music Suite). There is no settings file for these.
@@ -1231,8 +1355,10 @@ For things the app does not offer as a setting, set a Windows environment variab
 | `MUSIC_SUITE_YUE2_PYTHON`, `MUSIC_SUITE_YUE2_DEVICE` | , cuda | The YuE2 install. |
 | `MUSIC_SUITE_MUSCRIPTOR_SIZE` | | small, medium or large. |
 
+<a id="troubleshooting"></a>
 ## Troubleshooting
 
+<a id="the-keyboard"></a>
 ### The keyboard
 
 | Problem | What to do |
@@ -1244,6 +1370,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | The take is late or early | **Measure the delay** again, with nothing else playing. |
 | The keyboard plays the wrong sound | Choose the voice in the app rather than on the keyboard, and press **Listen** before recording. |
 
+<a id="notes"></a>
 ### Notes
 
 | Problem | What to do |
@@ -1253,6 +1380,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | A piano comes back split across several tracks | Choose *Just a piano*; or use 4 stems rather than 6. |
 | An invented drum part | Fixed: a song without drums no longer gets one. Delete the track if an old session has it. |
 
+<a id="the-editor"></a>
 ### The editor
 
 | Problem | What to do |
@@ -1263,6 +1391,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | Recording is refused | Allow the microphone for the page in the browser's address bar. |
 | An export is missing an in-browser plugin | Some community plugins cannot run during export; the notice names them. |
 
+<a id="analysis-and-mastering"></a>
 ### Analysis and mastering
 
 | Problem | What to do |
@@ -1273,6 +1402,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | "Backend selected: internal" when you chose another | That backend is not installed; mastering used the built-in chain instead. |
 | An error shows raw text such as `{"detail": …}` | The message inside "detail" is the reason. |
 
+<a id="generating-songs"></a>
 ### Generating songs
 
 | Problem | What to do |
@@ -1283,6 +1413,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | ElevenLabs refuses the key or has no credit | Check the key and your ElevenLabs account. |
 | "The AI engine stopped while starting" | See `data\generation\engine.log`. |
 
+<a id="starting-music-suite"></a>
 ### Starting Music Suite
 
 | Problem | What to do |
@@ -1291,6 +1422,7 @@ For things the app does not offer as a setting, set a Windows environment variab
 | "Could not reach the Music Suite API" | Music Suite's background service stopped: run stop.bat, then start.bat. |
 | Something else | Look in the `logs` folder: `api.error.log` and `web.error.log` usually say why. |
 
+<a id="glossary"></a>
 ## Glossary
 
 | Term | Meaning |

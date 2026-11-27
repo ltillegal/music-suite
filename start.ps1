@@ -20,6 +20,18 @@ $installStatePath = Join-Path $root ".music-suite-install-state"
 $processFile = Join-Path $root ".music-suite-processes.json"
 $logDir = Join-Path $root "logs"
 . (Join-Path $root "scripts\install-state.ps1")
+Set-MusicSuitePortableEnvironment -Root $root
+
+# Started on its own (not from start.bat), the window would close on an error before it could
+# be read: show it and wait. The error still ends the script.
+trap {
+    if ($env:MUSIC_SUITE_LAUNCHER -ne "bat") {
+        Write-Host ""
+        Write-Host "Music Suite could not start: $($_.Exception.Message)" -ForegroundColor Red
+        Wait-IfOwnWindow "start.ps1"
+    }
+    break
+}
 
 function Add-BundledToolPaths {
     foreach ($folder in @(

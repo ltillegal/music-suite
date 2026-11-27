@@ -1,6 +1,50 @@
 import type { Job } from "@/lib/editor/types";
+import { localizeServerFields, localizeServerText, serverMessagesReady } from "@/lib/i18n/server-messages";
+
+/** Text fields of a provider's form description that are shown to the user. */
+const SCHEMA_TEXT = ["label", "help", "group", "groups", "placeholder", "title", "unit", "description"] as const;
 
 const BASE = "/suite-api";
+
+/** One sung line of the lyrics check (lib: audioqi/generation/lyrics_tools.py). */
+export interface LyricsLine {
+  /** Line number in the lyrics text (tags count as lines). */
+  line: number;
+  text: string;
+  section: string;
+  section_index: number;
+  syllables: number;
+  end_word: string;
+  /** Rhyme letter within its section (A, B…); null when it rhymes with no other line. */
+  rhyme: string | null;
+}
+
+export interface LyricsCheck {
+  language: string;
+  lines: LyricsLine[];
+  /** False for English when the pronouncing dictionary could not be downloaded. */
+  dictionary: boolean;
+}
+
+export interface LineSuggestion {
+  text: string;
+  syllables: number;
+  /** null when no rhyme was asked for. */
+  rhymes: boolean | null;
+  /** Within one syllable of the line it replaces. */
+  fits: boolean;
+}
+
+export interface LineSuggestions {
+  line: number;
+  original: string;
+  syllables: number;
+  rhyme_with: number | null;
+  rhyme_word: string | null;
+  language: string;
+  suggestions: LineSuggestion[];
+  engine: string;
+}
 
 export type FieldType = "text" | "lyrics" | "int" | "float" | "bool" | "enum" | "seed" | "model" | "plan";
 
@@ -203,9 +247,9 @@ export interface HistoryRecord {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, { ...init, cache: "no-store" });
+    res = (await Promise.all([fetch(`${BASE}${path}`, { ...init, cache: "no-store" }), serverMessagesReady()]))[0];
   } catch {
-    throw new Error("Could not reach the Music Suite API. Restart Music Suite with its start launcher.");
+    throw new Error(localizeServerText("Could not reach the Music Suite API. Restart Music Suite with its start launcher."));
   }
   if (!res.ok) {
     let message = `Request failed (${res.status})`;
@@ -215,9 +259,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       /* non-JSON error body */
     }
-    throw new Error(message);
+    throw new Error(localizeServerText(message));
   }
-  return (await res.json()) as T;
+  const body = (await res.json()) as T;
+  // History keeps the fields a song was made with, which can be sent again as they are.
+  if (path.startsWith("/generation/history")) return body;
+  // The engines describe their own forms: their labels, help and group names are shown in the
+  // interface language too (values sent back to the engine are left alone).
+  return path.startsWith("/generation/providers") ? localizeServerFields(body, SCHEMA_TEXT) : localizeServerFields(body);
 }
 
 function json(body: unknown): RequestInit {
@@ -278,6 +327,15 @@ export const generationApi = {
   stopEngine: () => request<{ running: boolean }>("/generation/engine/stop", { method: "POST" }),
   write: (body: { mode: "brief" | "lyrics"; idea: string; caption?: string; lyrics?: string; instrumental?: boolean }) =>
     request<{ brief: SongBrief; engine: string }>("/generation/lyrics", json(body)),
+  /** Syllables and rhyme letters for every sung line, by rule (no language model). */
+  checkLyrics: (lyrics: string, language?: string) =>
+    request<LyricsCheck>("/generation/lyrics/check", json({ lyrics, language })),
+  /** Alternatives for one line, each measured for syllables and rhyme. */
+  suggestLine: (body: { lyrics: string; line: number; language?: string; rhyme_with?: number | null | "auto"; caption?: string; idea?: string }) =>
+    request<LineSuggestions>("/generation/lyrics/line", json(body)),
+  /** A clearer, more concrete style description that keeps the user's intent. */
+  improveStyle: (body: { caption: string; lyrics?: string; idea?: string }) =>
+    request<{ caption: string; engine: string }>("/generation/style/improve", json(body)),
   history: () => request<HistoryRecord[]>("/generation/history"),
   albums: () => request<Album[]>("/generation/albums"),
   createAlbum: (body: {

@@ -79,6 +79,7 @@ This is the practical “what can I do with it?” list. **✅ Verified** means 
 ### Create complete music
 
 - ✅ **Idea, style and lyrics → a complete song with vocals.** Enter a concept, write or generate section-tagged lyrics, choose tempo, key, metre and duration, then ask for up to four versions.
+- ✅ **Lyrics helper and style improver.** Every line's syllables and a rhyme letter (AABB, ABAB…), checked by rule in English, Spanish, Russian, Ukrainian, German and French, so a line that is too long or does not rhyme stands out. *Alternatives* asks the local language model for other versions of a line and shows first the ones the checker confirms really rhyme and fit; *Improve the description* turns a rough style idea into a concrete one for the music model.
 - ✅ **Generate from a reference song.** Import a song and Music Suite measures its tempo, key, time signature and length, drafts a style description, and carries those musical facts into a new generation form.
 - ✅ **Start from style, lyrics, music or any combination.** Keep the measured reference, replace its description, provide your own lyrics, make an instrumental, or let the local writer draft the missing pieces.
 - ✅ **Regenerate part of a song.** Highlight a region and replace only that section while preserving the audio around it and matching the source level.
@@ -376,7 +377,7 @@ Lyrics are best with [Ollama](https://ollama.com) and the `gemma4:12b` model (ab
 ## Requirements
 
 - Windows 10/11 or a current macOS release
-- Python 3.12 or newer (librosa 1.0 and numpy 2.5 need it). The installer sets up 3.12 when it finds nothing newer, and recreates a virtual environment built on an older Python
+- Python 3.12 or newer (librosa 1.0 and numpy 2.5 need it). On Windows nothing needs to be installed: like ComfyUI's portable build, the installer keeps its own Python 3.12 inside the Music Suite folder (python.org's official build, checksum- and signature-checked), and recreates a virtual environment built on an older Python or a moved folder. On macOS the installer sets up 3.12 when it finds nothing newer
 - Node.js 22.13 or newer; the current LTS is recommended, and the installer replaces older versions
 - pnpm (recommended) or npm
 - FFmpeg and ffprobe (the Windows installer downloads a private, checksum-verified copy when needed)
@@ -388,7 +389,13 @@ Lyrics are best with [Ollama](https://ollama.com) and the `gemma4:12b` model (ab
 
 ---
 
-**Languages, colours, more monitors:** English and Russian (more of the app is translated with each update), five colour themes, and editor panels that pop out into their own windows for a second monitor. See *Language, colours and extra windows* in the [user manual](docs/USER_MANUAL.md).
+**Languages, colours, more monitors:**
+- The whole app in six languages: English, Español, Deutsch, Français, Русский and Українська, including engine messages and the user manual ([ES](docs/USER_MANUAL.es.md) · [DE](docs/USER_MANUAL.de.md) · [FR](docs/USER_MANUAL.fr.md) · [RU](docs/USER_MANUAL.ru.md) · [UK](docs/USER_MANUAL.uk.md)).
+- Six colour themes, including a light one.
+- Every panel can float in a window of its own, to arrange the screen your way or use a second monitor: the analyser's cards, Visual AI and charts, the editor's tracks and timeline, inspector, piano roll and on-screen piano, and the sections of the AI Song Studio, Synth Studio and Models & engines. Each remembers where it was, and the language and colours button can dock them all or reopen your last layout.
+- Any workspace, or a tab of the AI Song Studio or Synth Studio, opens in a window of its own (**language and colours** button ▸ *Open in a new window*, or the window button beside the tabs).
+
+See *Language, colours and extra windows* in the [user manual](docs/USER_MANUAL.md).
 
 **New to Music Suite?** Follow [Your first song, step by step](docs/FIRST_PROJECT.md): from a melody on a keyboard to a finished song with your own lyrics.
 
@@ -406,7 +413,7 @@ No programming experience is needed.
 
 <img src="docs/images/install-windows-choice.png" alt="Windows installer asking whether to perform a complete installation" width="900">
 
-The installer checks Python, FFmpeg, Node.js, Git, the Python libraries, and the web libraries. Missing tools are installed automatically. If Windows Package Manager (`winget`) is absent or broken, the core installer safely falls back to official downloads: checksum-verified portable FFmpeg, Node.js and Git packages, plus the digitally signed Python installer. A complete installation also adds Ollama, CMake, and Microsoft C++ build tools when needed. It is safe to run `install.bat` again: already-installed tools and models are detected and reused.
+The installer checks Python, FFmpeg, Node.js, Git, the Python libraries, and the web libraries. Missing tools are installed automatically. Python needs nothing on the computer: Music Suite downloads its own copy of python.org's official Python 3.12 into its folder (verified by checksum and the Python Software Foundation's signature; nothing is installed on Windows and no administrator is needed). FFmpeg, Node.js and Git work the same way: checksum-verified portable copies inside the folder, never a Windows install, and download caches stay in the folder too, so deleting it removes Music Suite completely. Only the optional complete installation adds programs to Windows (Ollama, CMake, and Microsoft C++ build tools), and it says so before you choose it. It is safe to run `install.bat` again: already-installed tools and models are detected and reused.
 
 4. Wait for the green **Music Suite is installed!** message. If one optional model could not download, the message tells you where to retry it inside the app.
 5. Double-click **`start.bat`**. Your browser opens Music Suite. Keep its command window open while using the app.
