@@ -32,11 +32,12 @@ fi
 
 DIST="$ROOT/dist"
 APP="$DIST/Music Suite.app"
+PKG="$DIST/MusicSuite.pkg"
 DMG="$DIST/MusicSuite.dmg"
 BUILD="$(mktemp -d "${TMPDIR:-/tmp}/music-suite-app.XXXXXX")"
 trap 'rm -rf "$BUILD"' EXIT
 
-rm -rf "$APP" "$DMG"
+rm -rf "$APP" "$PKG" "$DMG"
 mkdir -p "$DIST" "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 echo "Compiling native launcher..."
@@ -173,10 +174,31 @@ if [[ "$BUNDLED_PYTHON" -eq 1 ]]; then
   fi
 fi
 
-echo "Creating DMG..."
-hdiutil create -volname "Music Suite" -srcfolder "$APP" -ov -format UDZO "$DMG" >/dev/null
+# The release asset is a .pkg: it installs the app into /Applications and survives
+# the "dragged it out of the DMG and never moved it" mistake. Set
+# MUSIC_SUITE_MAKE_DMG=1 to also get the old disk image.
+VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")"
+BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Contents/Info.plist")"
 
-du -sh "$APP" "$DMG"
+echo "Creating the installer package..."
+pkgbuild \
+  --component "$APP" \
+  --install-location /Applications \
+  --identifier com.ltillegal.music-suite \
+  --version "${VERSION}.${BUILD_NUMBER}" \
+  "$PKG"
+
+if [[ "${MUSIC_SUITE_MAKE_DMG:-0}" == "1" ]]; then
+  echo "Creating DMG..."
+  hdiutil create -volname "Music Suite" -srcfolder "$APP" -ov -format UDZO "$DMG" >/dev/null
+fi
+
+echo "Verifying the package payload..."
+pkgutil --check-signature "$PKG" || echo "Note: the package is unsigned; Gatekeeper will ask the user to confirm."
+pkgutil --payload-files "$PKG" | grep -c "Music Suite.app/Contents/MacOS/MusicSuiteLauncher" >/dev/null \
+  || { echo "The package does not contain the launcher; refusing to continue." >&2; exit 1; }
+
+du -sh "$APP" "$PKG"
 echo "Done:"
 echo "  $APP"
-echo "  $DMG"
+echo "  $PKG"

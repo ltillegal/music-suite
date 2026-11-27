@@ -31,12 +31,12 @@ cd music-suite
 
 Optional AI engine/stems/Surge downloads are skipped in non-interactive installs; enable them with `MUSIC_SUITE_INSTALL_AI=1`, `MUSIC_SUITE_INSTALL_STEMS=1`, `MUSIC_SUITE_INSTALL_SURGE=1`.
 
-To build a native app with a WKWebView window and a DMG installer:
+To build a native app with a WKWebView window and a .pkg installer:
 
 ```bash
 ./scripts/build_macos_app.sh
 # -> dist/Music Suite.app
-# -> dist/MusicSuite.dmg
+# -> dist/MusicSuite.pkg
 ```
 
 The `.app` keeps its runtime state in `~/Library/Application Support/Music Suite`, so it also works from a read-only DMG or `/Applications`.
