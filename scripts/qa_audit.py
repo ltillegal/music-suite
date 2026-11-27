@@ -137,24 +137,28 @@ KEY_RE = re.compile(r"^\s{2,}([a-zA-Z_][\w]*)\s*:", re.MULTILINE)
 
 
 def check_i18n() -> None:
+    """Every translated dictionary must cover the same keys as the English one."""
     roots = [path for path in pathlib.Path(".").rglob("i18n") if path.is_dir()]
     for root in roots:
         langs = {path.name: path for path in root.iterdir() if path.is_dir()}
-        if "en" not in langs or "ru" not in langs:
+        if "en" not in langs:
             continue
-        for en_file in sorted(langs["en"].glob("*")):
-            ru_file = langs["ru"] / en_file.name
-            if not ru_file.is_file():
-                add(WARN, str(en_file), f"no {langs['ru'].name} counterpart for this file")
+        for lang, folder in sorted(langs.items()):
+            if lang == "en":
                 continue
-            en_keys = set(KEY_RE.findall(en_file.read_text(encoding="utf-8")))
-            ru_keys = set(KEY_RE.findall(ru_file.read_text(encoding="utf-8")))
-            missing = sorted(en_keys - ru_keys)
-            extra = sorted(ru_keys - en_keys)
-            if missing:
-                add(WARN, str(ru_file), f"missing keys: {', '.join(missing[:8])}")
-            if extra:
-                add(INFO, str(ru_file), f"keys not in en: {', '.join(extra[:8])}")
+            for en_file in sorted(langs["en"].glob("*")):
+                counterpart = folder / en_file.name
+                if not counterpart.is_file():
+                    add(WARN, str(en_file), f"no {lang} counterpart for this file")
+                    continue
+                en_keys = set(KEY_RE.findall(en_file.read_text(encoding="utf-8")))
+                keys = set(KEY_RE.findall(counterpart.read_text(encoding="utf-8")))
+                missing = sorted(en_keys - keys)
+                extra = sorted(keys - en_keys)
+                if missing:
+                    add(WARN, str(counterpart), f"{lang} misses keys: {', '.join(missing[:8])}")
+                if extra:
+                    add(INFO, str(counterpart), f"keys not in en: {', '.join(extra[:8])}")
 
 
 def diff_against(base: str) -> None:

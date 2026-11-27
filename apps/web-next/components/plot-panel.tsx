@@ -2,9 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { CircleHelp } from "lucide-react";
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useI18n } from "@/lib/i18n";
+import { localizeServerText } from "@/lib/i18n/server-messages";
 import { cn } from "@/lib/utils";
 
 // The factory entry binds react-plotly.js to the minified bundle; its default
@@ -33,6 +35,52 @@ interface PlotPanelProps {
   className?: string;
   helpText?: string;
   xRange?: [number, number];
+}
+
+type Json = Record<string, unknown>;
+
+/** An axis or colour-bar title, as a string or { text }. */
+function localTitle(value: unknown, tr: (text: string) => string): unknown {
+  if (typeof value === "string") return tr(value);
+  if (value && typeof value === "object" && typeof (value as Json).text === "string") {
+    return { ...(value as Json), text: tr((value as Json).text as string) };
+  }
+  return value;
+}
+
+/**
+ * The chart's words in the interface language: trace names, axis and colour-bar titles and
+ * notes come from the backend in English and are looked up in the backend-message catalogue.
+ * The chart's own title is dropped, since the panel heading shows it already, translated.
+ */
+function localizeFigure(figure: Json | undefined, locale: string): Json | undefined {
+  if (!figure) return figure;
+  const tr = (text: string) => localizeServerText(text, locale);
+  const data = Array.isArray(figure.data)
+    ? (figure.data as unknown[]).map((trace) => {
+        if (!trace || typeof trace !== "object") return trace;
+        const item = { ...(trace as Json) };
+        if (typeof item.name === "string") item.name = tr(item.name);
+        if (item.colorbar && typeof item.colorbar === "object") {
+          item.colorbar = { ...(item.colorbar as Json), title: localTitle((item.colorbar as Json).title, tr) };
+        }
+        return item;
+      })
+    : figure.data;
+  const layout: Json = { ...((figure.layout as Json | undefined) ?? {}) };
+  delete layout.title;
+  for (const key of Object.keys(layout)) {
+    const axis = layout[key];
+    if (/^[xy]axis\d*$/.test(key) && axis && typeof axis === "object") layout[key] = { ...(axis as Json), title: localTitle((axis as Json).title, tr) };
+  }
+  if (Array.isArray(layout.annotations)) {
+    layout.annotations = (layout.annotations as unknown[]).map((note) =>
+      note && typeof note === "object" && typeof (note as Json).text === "string"
+        ? { ...(note as Json), text: tr((note as Json).text as string) }
+        : note
+    );
+  }
+  return { ...figure, data, layout };
 }
 
 function maybeFiniteNumber(value: unknown): number | null {
@@ -107,8 +155,26 @@ function clampRangeToBounds(range: [number, number], bounds: [number, number]): 
   return [start, end];
 }
 
-function PlotPanelView({ title, figure, height = 520, className, helpText, xRange }: PlotPanelProps) {
+function PlotPanelView({ title, figure: sourceFigure, height = 520, className, helpText, xRange }: PlotPanelProps) {
+  const { t, locale } = useI18n();
+  const figure = useMemo(() => localizeFigure(sourceFigure, locale), [sourceFigure, locale]);
   const [plotError, setPlotError] = useState<string | null>(null);
+  // In a popped-out window the chart library cannot measure its box (it asks the main page's
+  // window), so the width is measured here and given to it.
+  const boxRef = useRef<HTMLDivElement | null>(null);
+  const hasPlot = Array.isArray(figure?.data) && figure.data.length > 0;
+  const [ownWidth, setOwnWidth] = useState<number | null>(null);
+  useEffect(() => {
+    const box = boxRef.current;
+    const view = box?.ownerDocument.defaultView as (Window & typeof globalThis) | null | undefined;
+    if (!box || !view || view === window) return;
+    const observer = new view.ResizeObserver(([entry]) => setOwnWidth(Math.max(200, Math.floor(entry.contentRect.width))));
+    observer.observe(box);
+    return () => {
+      observer.disconnect();
+      setOwnWidth(null);
+    };
+  }, [hasPlot]);
 
   const figureData = useMemo(
     () =>
@@ -195,7 +261,7 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
 
   const downloadName = title
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/[^\p{L}\p{N}]+/gu, "_")
     .replace(/^_+|_+$/g, "") || "audioqi_chart";
 
   const layoutWithHeight = useMemo(
@@ -216,7 +282,8 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
         plot_bgcolor: PLOT_SURFACE_BG,
         font: { color: PLOT_FONT_COLOR, ...(figureLayout.font as Record<string, unknown> | undefined) },
         margin: mergedMargin,
-        autosize: true,
+        autosize: ownWidth === null,
+        ...(ownWidth === null ? {} : { width: ownWidth }),
         height,
       };
       if (figureYaxis2 && typeof figureYaxis2 === "object") {
@@ -226,11 +293,34 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
       }
       return layout;
     },
-    [figureLayout, scopedXaxis, figureYaxis, figureYaxis2, mergedMargin, height]
+    [figureLayout, scopedXaxis, figureYaxis, figureYaxis2, mergedMargin, height, ownWidth]
   );
+
+  // Plotly looks its toolbar text up by the English wording.
+  const toolbar = useMemo(() => {
+    const entries: [string, Parameters<typeof t>[0]][] = [
+      ["Zoom", "charts.plot.toolbar.zoom"],
+      ["Pan", "charts.plot.toolbar.pan"],
+      ["Zoom in", "charts.plot.toolbar.zoomIn"],
+      ["Zoom out", "charts.plot.toolbar.zoomOut"],
+      ["Autoscale", "charts.plot.toolbar.autoscale"],
+      ["Reset axes", "charts.plot.toolbar.resetAxes"],
+      ["Download plot as a PNG", "charts.plot.toolbar.download"],
+      ["Download plot", "charts.plot.toolbar.download"],
+      ["Toggle Spike Lines", "charts.plot.toolbar.spikes"],
+      ["Show closest data on hover", "charts.plot.toolbar.closest"],
+      ["Compare data on hover", "charts.plot.toolbar.compare"],
+      ["Box Select", "charts.plot.toolbar.boxSelect"],
+      ["Lasso Select", "charts.plot.toolbar.lasso"],
+      ["Double-click to zoom back out", "charts.plot.toolbar.doubleClick"]
+    ];
+    return Object.fromEntries(entries.map(([english, key]) => [english, t(key)]));
+  }, [t]);
 
   const plotConfig = useMemo(
     () => ({
+      locale,
+      locales: { [locale]: { dictionary: toolbar } },
       responsive: true,
       displaylogo: false,
       scrollZoom: true,
@@ -244,7 +334,7 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
         scale: 2
       }
     }),
-    [downloadName, height]
+    [downloadName, height, locale, toolbar]
   );
 
   return (
@@ -264,7 +354,7 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
       </CardHeader>
       <CardContent>
         {figure && highFidelityData.length > 0 ? (
-          <>
+          <div ref={boxRef}>
             <Plot
               data={highFidelityData as never[]}
               layout={layoutWithHeight as never}
@@ -277,13 +367,13 @@ function PlotPanelView({ title, figure, height = 520, className, helpText, xRang
             />
             {plotError ? (
               <p className="mt-1 rounded-lg border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs text-red-200">
-                Plotly render error: {plotError}
+                {t("charts.plot.renderError", { message: plotError })}
               </p>
             ) : null}
-          </>
+          </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-            Chart data unavailable for this run.
+            {t("charts.plot.noData")}
           </div>
         )}
       </CardContent>

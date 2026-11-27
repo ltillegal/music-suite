@@ -1,5 +1,7 @@
 /** Optional engines and models: what is installed, and installing more (``/addons``). */
 
+import { localizeServerFields, localizeServerText, serverMessagesReady } from "@/lib/i18n/server-messages";
+
 const BASE = "/suite-api/addons";
 // Installs change Music Suite's environment, so the API wants this header on every change.
 const ACTION = { "X-Music-Suite-Action": "addons" };
@@ -57,15 +59,16 @@ export interface AddonsOverview {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, { ...init, cache: "no-store" });
+    res = (await Promise.all([fetch(`${BASE}${path}`, { ...init, cache: "no-store" }), serverMessagesReady()]))[0];
   } catch {
-    throw new Error("Could not reach the Music Suite API. Restart Music Suite with its start launcher.");
+    throw new Error(localizeServerText("Could not reach the Music Suite API. Restart Music Suite with its start launcher."));
   }
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { detail?: unknown } | null;
-    throw new Error(typeof body?.detail === "string" ? body.detail : `Request failed (${res.status})`);
+    throw new Error(localizeServerText(typeof body?.detail === "string" ? body.detail : `Request failed (${res.status})`));
   }
-  return (await res.json()) as T;
+  // Pack names are display text too ("AI stem separation").
+  return localizeServerFields((await res.json()) as T, ["label"]);
 }
 
 export const addonsApi = {

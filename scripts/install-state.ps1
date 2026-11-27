@@ -291,7 +291,15 @@ function Invoke-WebAppBuild {
     $runner = Get-PnpmInvocation
     if (-not $runner) { throw "Node.js's package tools (pnpm, corepack or npm) were not found. Run install.bat." }
     $steps = @()
-    if (-not $BuildOnly) { $steps += ,@("Installing the web app's libraries", @("install")) }
+    $installArgs = @("install")
+    if ($runner.Name -eq "pnpm" -and $env:MUSIC_SUITE_CACHE) {
+        # Keep pnpm's store and caches inside Music Suite's folder (Set-MusicSuitePortableEnvironment).
+        # A store moved here makes pnpm rebuild node_modules once; it must not stop to ask.
+        $cache = $env:MUSIC_SUITE_CACHE
+        $installArgs += @("--store-dir=$cache\pnpm-store", "--config.cache-dir=$cache\pnpm",
+            "--config.state-dir=$cache\pnpm-state", "--config.confirm-modules-purge=false")
+    }
+    if (-not $BuildOnly) { $steps += ,@("Installing the web app's libraries", $installArgs) }
     if ($runner.Name -eq "pnpm") { $steps += ,@("Building the web app", @("build")) }
     else { $steps += ,@("Building the web app", @("run", "build")) }
 
@@ -321,5 +329,62 @@ function Add-PathFolder {
     $current = ";" + $env:Path + ";"
     if ($current.IndexOf(";" + $Folder + ";", [StringComparison]::OrdinalIgnoreCase) -lt 0) {
         $env:Path = "$Folder;$env:Path"
+    }
+}
+
+function Wait-IfOwnWindow([string]$ScriptName) {
+    <#
+        .SYNOPSIS
+        Keep the window open when a script was started on its own.
+
+        Right-clicking install.ps1 or start.ps1 and choosing "Run with PowerShell" runs it in a
+        window that closes the moment the script ends, taking the explanation of what went
+        wrong with it: to the person it looks as if the installer "just closed". The .bat files
+        keep their own window open (they set MUSIC_SUITE_LAUNCHER), and a script run from a
+        PowerShell window someone opened needs no pause, so this waits only when the script's
+        name is on this PowerShell's own command line.
+    #>
+    if ($env:MUSIC_SUITE_LAUNCHER -eq "bat") { return }
+    if (-not [Environment]::UserInteractive -or [Console]::IsInputRedirected) { return }
+    if ([Environment]::CommandLine -notmatch [regex]::Escape($ScriptName)) { return }
+    Write-Host ""
+    try { Read-Host "Press Enter to close this window" | Out-Null } catch {}
+}
+
+function Set-MusicSuitePortableEnvironment {
+    <#
+        .SYNOPSIS
+        Keep every download cache inside Music Suite's folder, for this session and the programs
+        it starts.
+
+        pip, npm, pnpm and corepack keep caches in the user's profile by default
+        (%LOCALAPPDATA%\pip, npm-cache, pnpm\store, node\corepack). Music Suite is portable,
+        like ComfyUI Portable: what it adds stays in its folder, and deleting the folder removes
+        it. A variable the user set is kept. Python-side caches (models) are handled by
+        audioqi/portable.py.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Root)
+    $cache = Join-Path $Root ".cache"
+    $values = [ordered]@{
+        # Read by Invoke-WebAppBuild: pnpm 11 and newer ignore npm_config_* for its own
+        # settings, so the store and caches are also passed on its command line.
+        MUSIC_SUITE_CACHE = $cache
+        PIP_CACHE_DIR = (Join-Path $cache "pip")
+        npm_config_cache = (Join-Path $cache "npm")
+        npm_config_store_dir = (Join-Path $cache "pnpm-store")
+        npm_config_cache_dir = (Join-Path $cache "pnpm")
+        npm_config_state_dir = (Join-Path $cache "pnpm-state")
+        COREPACK_HOME = (Join-Path $cache "corepack")
+        # A store moved here makes pnpm rebuild node_modules once; it must not stop to ask.
+        npm_config_confirm_modules_purge = "false"
+        # Next.js would otherwise write its telemetry setting into the user's profile.
+        NEXT_TELEMETRY_DISABLED = "1"
+        # Packages in the user's own Python folder must not leak into Music Suite's Python.
+        PYTHONNOUSERSITE = "1"
+    }
+    foreach ($name in $values.Keys) {
+        if (-not [Environment]::GetEnvironmentVariable($name, "Process")) {
+            [Environment]::SetEnvironmentVariable($name, $values[$name], "Process")
+        }
     }
 }
